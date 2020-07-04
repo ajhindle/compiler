@@ -40,6 +40,7 @@ void *allocate(int size);
 %token ASSIGN_TOKEN DO_TOKEN   ELSE_TOKEN  IF_TOKEN    INT_TOKEN 
 %token READ_TOKEN   SKIP_TOKEN THEN_TOKEN  WHILE_TOKEN WRITE_TOKEN
 %token PROC_TOKEN
+%token END_TOKEN
 %token INVALID_TOKEN
 %token <int_val> NUMBER_TOKEN
 %token <str_val> IDENT_TOKEN
@@ -77,13 +78,29 @@ program
     : procedure_list
         { 
           parsed_program = allocate(sizeof(struct s_prog));
-          parsed_program->p_procs = $1;
+          parsed_program->procs = $1;
         }
-    | PROC_TOKEN END_TOKEN
+    ;
+
+procedure_list
+    : procedure procedure_list
+	{
+	}
+    | procedure
 	{
 	}
     ;
 
+procedure
+    : PROC_TOKEN header opt_variable_list statement_list END_TOKEN
+	{
+	}
+
+header
+    :  
+	{
+	}
+    ;
 
 opt_variable_list
     : INT_TOKEN variable_list ';' 
