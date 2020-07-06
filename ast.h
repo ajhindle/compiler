@@ -12,9 +12,9 @@
 typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
 typedef struct s_param	    *Param;
+typedef struct s_params	    *Params;
 typedef struct s_param	    *Fdecl;
 typedef struct s_params	    *Fdecls;
-typedef struct s_params	    *Params;
 typedef struct s_expr   	*Expr;
 typedef struct s_exprs		*Exprs;
 typedef struct s_stmts  	*Stmts;
@@ -161,8 +161,8 @@ struct s_header {
 };
 
 struct s_proc {
-	int		p_main;				/* indicates a main() procedure */
-	Header	p_header;
+    int     p_main;				/* indicates a main() procedure */
+    Header  p_header;
     Decls   p_decls;
     Stmts   p_body;
 };

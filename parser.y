@@ -28,19 +28,24 @@ void *allocate(int size);
     char    *str_val;
     Decl    decl_val;
     Decls   decls_val;
+    Fdecl   fdecl_val;
+    Fdecls  fdecls_val;
     Expr    expr_val;
     Stmts   stmts_val;
     Stmt    stmt_val;
+    VType   type_val;
+    PKind   p_ind_val;
+    Header  hdr_val;
     Proc    proc_val;
     Procs   procs_val;
     Program prog_val;
 }
 
 %token '(' ')' ',' ';' '{' '}'
-%token ASSIGN_TOKEN DO_TOKEN   ELSE_TOKEN  IF_TOKEN    INT_TOKEN 
+%token ASSIGN_TOKEN DO_TOKEN   ELSE_TOKEN  IF_TOKEN    INT_TOKEN    FLOAT_TOKEN
 %token READ_TOKEN   SKIP_TOKEN THEN_TOKEN  WHILE_TOKEN WRITE_TOKEN
-%token PROC_TOKEN
-%token END_TOKEN
+%token PROC_TOKEN   END_TOKEN
+%token VAL_TOKEN    REF_TOKEN  VALRES_TOKEN
 %token INVALID_TOKEN
 %token <int_val> NUMBER_TOKEN
 %token <str_val> IDENT_TOKEN
@@ -54,7 +59,12 @@ void *allocate(int size);
 %type <prog_val>  program
 %type <procs_val> procedure_list
 %type <proc_val>  procedure
+%type <hdr_val>   header 
+%type <p_ind_val> passing_indicator
+%type <type_val>  type
 %type <decls_val> opt_variable_list
+%type <fdecl_val> param_decl
+%type <fdecls_val> param_decl_list
 %type <decls_val> variable_list
 %type <decl_val>  variable_decl
 %type <stmts_val> statement_list 
@@ -84,26 +94,96 @@ program
 
 procedure_list
     : procedure procedure_list
-	{
-	}
+	    {
+          $$ = allocate(sizeof(struct s_proc));
+          $$->p_first = $1;
+          $$->p_rest = $2;
+	    }
     | procedure
-	{
-	}
+	    {
+          $$ = allocate(sizeof(struct s_proc));
+          $$->p_first = $1;
+          $$->p_rest = NULL;
+	    }
     ;
 
 procedure
     : PROC_TOKEN header opt_variable_list statement_list END_TOKEN
-	{
-	}
+	    {
+          $$ = allocate(sizeof(struct s_proc));
+          $$->p_header = $2;
+          $$->p_decls = $3;
+          $$->p_body = $4;
+	    }
 
 header
-    :  
-	{
-	}
+    : IDENT_TOKEN '(' param_decl_list ')'
+	    {
+          $$ = allocate(sizeof(struct s_header));
+          $$->h_id = $1;
+          $$->h_params = $3;
+	    }
+    ;
+
+param_decl_list 
+    : param_decl
+        {
+          $$ = allocate(sizeof(struct s_params));
+          $$->p_first = $1;
+          $$->p_rest = NULL;
+        }
+
+    | param_decl ',' param_decl_list
+        {
+          $$ = allocate(sizeof(struct s_params));
+          $$->p_first = $1;
+          $$->p_rest = $3;
+        }
+
+    | /* empty */
+        { $$ = NULL; }
+
+    | error ',' param_decl_list
+        { $$ = NULL; }
+    ;
+
+param_decl
+    : passing_indicator type IDENT_TOKEN 
+        { 
+          $$ = allocate(sizeof(struct s_param));
+          $$->d_kind = $1;
+          $$->d_type = $2;
+          $$->d_id = $3;
+        }
+
+    | /* empty */
+        { $$ = NULL; }
+
+    | error ';'
+    ;
+
+passing_indicator
+    : VALRES_TOKEN
+        { $$ = VALRES; }
+        
+    | REF_TOKEN
+        { $$ = REF; }
+
+    | VAL_TOKEN
+        { $$ = VAL; }
+    ;
+
+type
+    : INT_TOKEN
+        { $$ = INT; }
+        
+    | FLOAT_TOKEN
+        { $$ = FLOAT; }
+
     ;
 
 opt_variable_list
-    : INT_TOKEN variable_list ';' 
+    : type variable_list ';' 
         { $$ = $2; }
 
     | /* empty */

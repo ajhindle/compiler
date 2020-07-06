@@ -36,10 +36,14 @@ read            { return READ_TOKEN; }
 skip            { return SKIP_TOKEN; }
 then            { return THEN_TOKEN; }
 int             { return INT_TOKEN; }
+float           { return FLOAT_TOKEN; }
 while           { return WHILE_TOKEN; }
 write           { return WRITE_TOKEN; }
 proc            { return PROC_TOKEN; }
 end             { return END_TOKEN; }
+ref             { return REF_TOKEN; }
+val             { return VAL_TOKEN; }
+valres          { return VALRES_TOKEN; }
 
 {NUM}           { yylval.int_val = atoi(yytext); return NUMBER_TOKEN; }
 
