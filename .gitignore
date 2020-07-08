@@ -6,3 +6,4 @@ parser.h
 n7c
 scanner.c
 *~
+*.k

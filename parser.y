@@ -24,21 +24,23 @@ void *allocate(int size);
 %}
 
 %union {
-    int     int_val;
-    char    *str_val;
-    Decl    decl_val;
-    Decls   decls_val;
-    Fdecl   fdecl_val;
-    Fdecls  fdecls_val;
-    Expr    expr_val;
-    Stmts   stmts_val;
-    Stmt    stmt_val;
-    VType   type_val;
-    PKind   p_ind_val;
-    Header  hdr_val;
-    Proc    proc_val;
-    Procs   procs_val;
-    Program prog_val;
+    int         int_val;
+    char        *str_val;
+    Decl        decl_val;
+    Decls       decls_val;
+    VarName     varname_val;
+    VarNames    varnames_val;
+    Param       param_val;
+    Params      params_val;
+    Expr        expr_val;
+    Stmts       stmts_val;
+    Stmt        stmt_val;
+    VType       type_val;
+    PKind       pkind_val;
+    Header      hdr_val;
+    Proc        proc_val;
+    Procs       procs_val;
+    Program     prog_val;
 }
 
 %token '(' ')' ',' ';' '{' '}'
@@ -56,20 +58,23 @@ void *allocate(int size);
 %left '*'
 %left UNARY_MINUS
 
-%type <prog_val>  program
-%type <procs_val> procedure_list
-%type <proc_val>  procedure
-%type <hdr_val>   header 
-%type <p_ind_val> passing_indicator
-%type <type_val>  type
-%type <decls_val> opt_variable_list
-%type <fdecl_val> param_decl
-%type <fdecls_val> param_decl_list
-%type <decls_val> variable_list
-%type <decl_val>  variable_decl
-%type <stmts_val> statement_list 
-%type <stmt_val>  statement 
-%type <expr_val>  expression 
+%type <prog_val>    program
+%type <procs_val>   procedure_list
+%type <proc_val>    procedure
+%type <hdr_val>     header 
+%type <pkind_val>   passing_indicator
+%type <type_val>    type
+%type <param_val>   param_decl
+%type <params_val>  param_decl_list
+
+%type <decl_val>    decl
+%type <decls_val>   decl_list
+%type <varname_val>  var_name
+%type <varnames_val> var_name_list
+
+%type <stmts_val>   statement_list 
+%type <stmt_val>    statement 
+%type <expr_val>    expression 
 
 %type <int_val>   assign
 %type <int_val>   start_block
@@ -108,7 +113,7 @@ procedure_list
     ;
 
 procedure
-    : PROC_TOKEN header opt_variable_list statement_list END_TOKEN
+    : PROC_TOKEN header decl_list statement_list END_TOKEN
 	    {
           $$ = allocate(sizeof(struct s_proc));
           $$->p_header = $2;
@@ -158,8 +163,6 @@ param_decl
 
     | /* empty */
         { $$ = NULL; }
-
-    | error ';'
     ;
 
 passing_indicator
@@ -179,12 +182,22 @@ type
         
     | FLOAT_TOKEN
         { $$ = FLOAT; }
-
     ;
 
-opt_variable_list
-    : type variable_list ';' 
-        { $$ = $2; }
+decl_list
+    : decl ';' 
+        { 
+          $$ = allocate(sizeof(struct s_decls));
+          $$->d_first = $1; 
+          $$->d_rest = NULL; 
+        }
+
+    | decl ';' decl_list
+        { 
+          $$ = allocate(sizeof(struct s_decls));
+          $$->d_first = $1; 
+          $$->d_rest = $3; 
+        }
 
     | /* empty */
         { $$ = NULL; }
@@ -193,31 +206,42 @@ opt_variable_list
         { $$ = NULL; }
     ;
 
-variable_list 
-    : variable_decl
-        {
+
+decl
+    : type var_name_list
+        { 
           $$ = allocate(sizeof(struct s_decl));
-          $$->d_first = $1;
-          $$->d_rest = NULL;
+          $$->d_type = $1; 
+          $$->d_varnames = $2; 
         }
 
-    | variable_decl ',' variable_list
+
+
+var_name_list 
+    : var_name
         {
-          $$ = allocate(sizeof(struct s_decl));
-          $$->d_first = $1;
-          $$->d_rest = $3;
+          $$ = allocate(sizeof(struct s_varnames));
+          $$->v_first = $1;
+          $$->v_rest = NULL;
         }
 
-    | error ',' variable_list
+    | var_name ',' var_name_list
+        {
+          $$ = allocate(sizeof(struct s_varnames));
+          $$->v_first = $1;
+          $$->v_rest = $3;
+        }
+
+    | error ',' var_name_list
         { $$ = NULL; }
     ;
 
-variable_decl 
+var_name
     : IDENT_TOKEN
         { 
-          $$ = allocate(sizeof(struct s_decl));
-          $$->d_lineno = ln;
-          $$->d_id = $1;
+          $$ = allocate(sizeof(struct s_varname));
+          /* $$->d_lineno = ln; */
+          $$->v_id = $1;
         }
     ;
 
@@ -264,6 +288,13 @@ statement_list                           /* non-empty list of statements */
           $$->s_rest = allocate(sizeof(struct s_stmts));
           $$->s_rest->s_first = $3;
           $$->s_rest->s_rest= NULL;
+        }
+
+    | statement 
+        {
+          $$ = allocate(sizeof(struct s_stmts));
+          $$->s_first = $1;
+          $$->s_rest = NULL;
         }
 
     | error ';' { yyerrok; } statement_list

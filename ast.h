@@ -11,10 +11,10 @@
 
 typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
+typedef struct s_varname    *VarName;
+typedef struct s_varnames 	*VarNames;
 typedef struct s_param	    *Param;
 typedef struct s_params	    *Params;
-typedef struct s_param	    *Fdecl;
-typedef struct s_params	    *Fdecls;
 typedef struct s_expr   	*Expr;
 typedef struct s_exprs		*Exprs;
 typedef struct s_stmts  	*Stmts;
@@ -75,19 +75,28 @@ struct s_param {
 };
 
 struct s_params {
-	Fdecl	p_first;
-	Fdecls	p_rest;
+	Param   p_first;
+	Params  p_rest;
 };
 
 struct s_decl {
-    int     d_lineno;
-	VType	d_type;
-    char    *d_id;
+    int         d_lineno;
+	VType	    d_type;
+    VarNames    d_varnames;
 };
 
 struct s_decls {
     Decl    d_first;
     Decls   d_rest;
+};
+
+struct s_varname {
+    char    *v_id;
+};
+
+struct s_varnames {
+    VarName     v_first;
+    VarNames    v_rest;
 };
 
 typedef enum {
