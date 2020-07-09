@@ -2,7 +2,7 @@ HDR =		ast.h std.h missing.h parser.h pretty.h n7c.h
 
 OBJ =		n7c.o parser.o scanner.o pretty.o 
 
-CC = 		gcc -Wall
+CC = 		gcc -Wall -g
 
 n7c:		$(OBJ)
 		$(CC) -o n7c $(OBJ)
