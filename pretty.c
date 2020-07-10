@@ -3,9 +3,13 @@
 
 extern void report_error_and_exit(const char *msg);
 
-void print_proc(Proc proc);
-void print_header(Header header);
-void print_param(Param param);
+const int INDENT = 10;
+
+void print_proc(FILE *fp, int indent, Proc proc);
+void print_header(FILE *fp, int indent, Header header);
+void print_param(FILE *fp, Param param);
+void print_decls(FILE *fp, Decls decls);
+void print_type(FILE *fp, VType type);
 
 void
 pretty_prog(FILE *fp, Program prog) {
@@ -19,7 +23,7 @@ pretty_prog(FILE *fp, Program prog) {
     next_procs = prog->procs->p_rest;
 
     while(curr_proc != NULL) {
-        print_proc(curr_proc);
+        print_proc(fp, INDENT, curr_proc);
         if (next_procs != NULL) {
             curr_proc = next_procs->p_first;
             next_procs = next_procs->p_rest;
@@ -30,40 +34,95 @@ pretty_prog(FILE *fp, Program prog) {
 }
 
 void
-print_proc(Proc proc) {
-    fprintf(stdout, "%s ", "proc");
-    print_header(proc->p_header);
+print_proc(FILE *fp, int indent, Proc proc) {
+    /* fprintf(fp, "%*s ", indent, "proc"); */
+    fprintf(fp, "%s ", "proc"); 
+    print_header(fp, indent, proc->p_header);
+    if(proc->p_decls != NULL)
+        print_decls(fp, proc->p_decls);
+    fprintf(fp, "{\n");
+    fprintf(fp, "}\n");
 }
 
 void 
-print_header(Header header) {
+print_header(FILE *fp, int indent, Header header) {
 
     char    *h_id;
     Param    curr_param;
     Params   next_params;
     
     h_id = header->h_id;
-    fprintf(stdout, "%s(", h_id);
+    fprintf(fp, "%s(", h_id);
    
     if (header->h_params != NULL) {
         curr_param = header->h_params->p_first;
         next_params = header->h_params->p_rest;
 
         while(curr_param != NULL) {
-            print_param(curr_param);
+            print_param(fp, curr_param);
             if (next_params != NULL) {
                 curr_param = next_params->p_first;
                 next_params = next_params->p_rest;
+                fprintf(fp, ", ");
             }
             else
-            curr_param = NULL;
+                curr_param = NULL;
         }
     }
 
-    fprintf(stdout, ")\n");
+    fprintf(fp, ")\n");
 }
 
 void 
-print_param(Param param) {
-    fprintf(stdout, "%s", param->d_id);
+print_param(FILE *fp, Param param) {
+
+    switch (param->d_kind) {
+        case VAL:
+            fprintf(fp, "%s ", "val");
+            break;
+        case VALRES:
+            fprintf(fp, "%s ", "valres");
+            break;
+        case REF:
+            fprintf(fp, "%s ", "ref");
+            break;
+    }
+
+    print_type(fp, param->d_type);
+
+    fprintf(fp, "%s", param->d_id);
+}
+
+void
+print_decls(FILE *fp, Decls decls) {
+
+    Decl    curr_decl;
+    Decls   next_decls;
+    
+    curr_decl = decls->d_first;
+    next_decls = decls->d_rest;
+
+    while(curr_decl != NULL) {
+        /* fprintf(fp, "%s", curr_decl->); */
+        print_type(fp, curr_decl->d_type);
+        fprintf(fp, ";\n");
+        if (next_decls != NULL) {
+            curr_decl = next_decls->d_first;
+            next_decls = next_decls->d_rest;
+        }
+        else
+            curr_decl = NULL;
+    }
+}
+
+void
+print_type(FILE *fp, VType type) {
+    switch (type) {
+        case INT:
+            fprintf(fp, "%s ", "int");
+            break;
+        case FLOAT:
+            fprintf(fp, "%s ", "float");
+            break;
+    }
 }
