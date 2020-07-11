@@ -10,6 +10,8 @@ void print_header(FILE *fp, int indent, Header header);
 void print_param(FILE *fp, Param param);
 void print_decls(FILE *fp, Decls decls);
 void print_type(FILE *fp, VType type);
+void print_varnames(FILE *fp, VarNames varnames);
+void print_statements(FILE *fp, int indent, Stmts stmts);
 
 void
 pretty_prog(FILE *fp, Program prog) {
@@ -40,8 +42,7 @@ print_proc(FILE *fp, int indent, Proc proc) {
     print_header(fp, indent, proc->p_header);
     if(proc->p_decls != NULL)
         print_decls(fp, proc->p_decls);
-    fprintf(fp, "{\n");
-    fprintf(fp, "}\n");
+    print_statements(fp, indent, proc->p_body);
 }
 
 void 
@@ -105,6 +106,7 @@ print_decls(FILE *fp, Decls decls) {
     while(curr_decl != NULL) {
         /* fprintf(fp, "%s", curr_decl->); */
         print_type(fp, curr_decl->d_type);
+        print_varnames(fp, curr_decl->d_varnames);
         fprintf(fp, ";\n");
         if (next_decls != NULL) {
             curr_decl = next_decls->d_first;
@@ -112,6 +114,17 @@ print_decls(FILE *fp, Decls decls) {
         }
         else
             curr_decl = NULL;
+    }
+}
+
+void
+print_varnames(FILE *fp, VarNames varnames) {
+
+    fprintf(fp, "%s", varnames->v_first->v_id);
+        
+    if (varnames->v_rest != NULL) {
+        fprintf(fp, ", ");
+        print_varnames(fp, varnames->v_rest);
     }
 }
 
@@ -124,5 +137,20 @@ print_type(FILE *fp, VType type) {
         case FLOAT:
             fprintf(fp, "%s ", "float");
             break;
+    }
+}
+
+void
+print_statements(FILE *fp, int indent, Stmts stmts) {
+
+    /* fprintf(fp, "%s", stmts->s_first->v_id); */
+        
+    if (stmts->s_rest != NULL) {
+        fprintf(fp, "{\n");
+        /* print_varnames(fp, varnames->v_rest); */
+        fprintf(fp, "}\n");
+    }
+    else {
+        fprintf(fp, "stmts->s_rest is NULL\n");
     }
 }
