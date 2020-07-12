@@ -12,6 +12,7 @@ void print_decls(FILE *fp, Decls decls);
 void print_type(FILE *fp, VType type);
 void print_varnames(FILE *fp, VarNames varnames);
 void print_statements(FILE *fp, int indent, Stmts stmts);
+void print_statement(FILE *fp, Stmt stmt);
 
 void
 pretty_prog(FILE *fp, Program prog) {
@@ -143,14 +144,62 @@ print_type(FILE *fp, VType type) {
 void
 print_statements(FILE *fp, int indent, Stmts stmts) {
 
-    /* fprintf(fp, "%s", stmts->s_first->v_id); */
         
-    if (stmts->s_rest != NULL) {
-        fprintf(fp, "{\n");
-        /* print_varnames(fp, varnames->v_rest); */
-        fprintf(fp, "}\n");
+    if (stmts->s_first != NULL) {
+        print_statement(fp, stmts->s_first); 
+        fprintf(fp, "\n");
     }
-    else {
-        fprintf(fp, "stmts->s_rest is NULL\n");
+
+    if (stmts->s_rest != NULL) {
+        print_statements(fp, indent, stmts->s_rest); 
+        fprintf(fp, "\n");
+    }
+}
+
+void
+print_statement(FILE *fp, Stmt stmt) {
+
+    SKind s_kind = stmt->s_kind;
+
+    switch (s_kind) {
+        case STMT_ASSIGN:
+            fprintf(fp, "%s ", "assign");
+            break;
+        case STMT_BLOCK:
+            fprintf(fp, "{\n");
+            /* fprintf(fp, "%s ", "{ <block> }"); */
+            print_statements(fp, 2, stmt->s_info.s_block);
+            fprintf(fp, "}\n");
+
+            break;
+        case STMT_COND:
+            fprintf(fp, "%s ", "if \n");
+            fprintf(fp, "%s ", "then ");
+            print_statement(fp, stmt->s_info.s_cond.if_then);
+            fprintf(fp, "%s ", "else ");
+            print_statement(fp, stmt->s_info.s_cond.if_else);
+            break;
+        case STMT_READ:
+            fprintf(fp, "%s ", "read");
+            break;
+        case STMT_SKIP:
+            fprintf(fp, "%s ", "skip...");
+            break;
+        case STMT_WHILE:
+            fprintf(fp, "%s ", "while ");
+            print_statement(fp, stmt->s_info.s_while.while_body);
+            break;
+        case STMT_WRITE:
+            fprintf(fp, "%s ", "write");
+            break;
+        case STMT_FOR:
+            fprintf(fp, "%s ", "for...");
+            break;
+        case STMT_CALL:
+            fprintf(fp, "%s ", "call");
+            break;
+        default:
+            fprintf(fp, "%s ", "UNKNOWN");
+            break;
     }
 }
