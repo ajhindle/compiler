@@ -3,10 +3,11 @@
 
 extern void report_error_and_exit(const char *msg);
 
-const int INDENT = 10;
+const int INDENT = 4;
+const int INDENT_START = 0;
 
 void print_proc(FILE *fp, int indent, Proc proc);
-void print_header(FILE *fp, int indent, Header header);
+void print_header(FILE *fp, int indent, Header heaccder);
 void print_param(FILE *fp, Param param);
 void print_decls(FILE *fp, Decls decls);
 void print_type(FILE *fp, VType type);
@@ -24,12 +25,14 @@ pretty_prog(FILE *fp, Program prog) {
 
     Procs   next_procs;
     Proc    curr_proc;
+    int     indent;
 
     curr_proc = prog->procs->p_first;
     next_procs = prog->procs->p_rest;
+    indent = INDENT_START;
 
     while(curr_proc != NULL) {
-        print_proc(fp, INDENT, curr_proc);
+        print_proc(fp, indent, curr_proc);
         if (next_procs != NULL) {
             curr_proc = next_procs->p_first;
             next_procs = next_procs->p_rest;
@@ -41,12 +44,12 @@ pretty_prog(FILE *fp, Program prog) {
 
 void
 print_proc(FILE *fp, int indent, Proc proc) {
-    /* fprintf(fp, "%*s ", indent, "proc"); */
-    fprintf(fp, "%s ", "proc"); 
+    fprintf(fp, "%*s ", indent, "proc"); 
     print_header(fp, indent, proc->p_header);
     if(proc->p_decls != NULL)
         print_decls(fp, proc->p_decls);
     print_statements(fp, indent, proc->p_body);
+    fprintf(fp, "%*s", indent, "end\n\n"); 
 }
 
 void 
@@ -94,7 +97,6 @@ print_param(FILE *fp, Param param) {
     }
 
     print_type(fp, param->d_type);
-
     fprintf(fp, "%s", param->d_id);
 }
 
@@ -147,16 +149,13 @@ print_type(FILE *fp, VType type) {
 void
 print_statements(FILE *fp, int indent, Stmts stmts) {
 
-        
     if (stmts->s_first != NULL) {
         print_statement(fp, stmts->s_first); 
         fprintf(fp, "\n");
     }
 
-    if (stmts->s_rest != NULL) {
+    if (stmts->s_rest != NULL) 
         print_statements(fp, indent, stmts->s_rest); 
-        fprintf(fp, "\n");
-    }
 }
 
 void
@@ -171,15 +170,15 @@ print_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_BLOCK:
             fprintf(fp, "{\n");
-            /* fprintf(fp, "%s ", "{ <block> }"); */
             print_statements(fp, 2, stmt->s_info.s_block);
-            fprintf(fp, "}\n");
+            fprintf(fp, "}");
             break;
         case STMT_COND:
-            fprintf(fp, "%s ", "if \n");
-            fprintf(fp, "%s ", "then ");
+            fprintf(fp, "%s ", "if");
+            print_expression(fp, stmt->s_info.s_cond.if_cond);
+            fprintf(fp, " %s ", "then");
             print_statement(fp, stmt->s_info.s_cond.if_then);
-            fprintf(fp, "%s ", "else ");
+            fprintf(fp, "%s ", "\nelse");
             print_statement(fp, stmt->s_info.s_cond.if_else);
             break;
         case STMT_READ:
@@ -189,7 +188,9 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, "%s ", "skip");
             break;
         case STMT_WHILE:
-            fprintf(fp, "%s ", "while ");
+            fprintf(fp, "%s ", "while");
+            print_expression(fp, stmt->s_info.s_while.while_cond);
+            fprintf(fp, " %s ", "do");
             print_statement(fp, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
@@ -209,12 +210,11 @@ print_statement(FILE *fp, Stmt stmt) {
 
 void
 print_expressions(FILE *fp, int indent, Exprs exprs) {
-
+    /* only used in Calls ? */
     print_expression(fp, exprs->e_first);
         
     if (exprs->e_rest != NULL) 
         print_expressions(fp, indent, exprs->e_rest);
-    
 }
 
 void
@@ -224,22 +224,33 @@ print_expression(FILE *fp, Expr expr) {
 
     switch (e_kind) {
         case EXPR_ID:
-            fprintf(fp, "%s ", expr->e_id);
+            fprintf(fp, "%s", expr->e_id);
             break;
         case EXPR_INTCONST:
-            fprintf(fp, "%d ", expr->e_val);
+            fprintf(fp, "%d", expr->e_val);
             break;
         case EXPR_FLTCONST:
-            fprintf(fp, "%.2f ", expr->e_float);
+            fprintf(fp, "%.2f", expr->e_float);
             break;
         case EXPR_BINOP:
-            print_expression(fp, expr->e1);
+            if (expr->e1->e_kind == EXPR_BINOP) {
+                fprintf(fp, "%s", "(");
+                print_expression(fp, expr->e1);
             /* fprintf(fp, " %s ", binopname[expr->e_binop]);*/
-            print_binop(fp, expr->e_binop);
-            print_expression(fp, expr->e2);
+                print_binop(fp, expr->e_binop);
+                print_expression(fp, expr->e2);
+                fprintf(fp, "%s", ")");
+            }
+            else {
+                print_expression(fp, expr->e1);
+                print_binop(fp, expr->e_binop);
+                print_expression(fp, expr->e2);
+            }
+
             break;
         case EXPR_UNOP:
-            fprintf(fp, "%s ", "expr_unop");
+            /* TODO define print_unop if necessary */
+            print_expression(fp, expr->e1);
             break;
         default: 
             fprintf(fp, "%s ", "UNKNOWN");
@@ -247,18 +258,17 @@ print_expression(FILE *fp, Expr expr) {
     }
 }
 
-
 void
 print_binop(FILE *fp, BinOp binop) {
     switch (binop) {
         case BINOP_ADD:
-            fprintf(fp, "%s ", "+");
+            fprintf(fp, " %s ", "+");
             break;
         case BINOP_SUB:
-            fprintf(fp, "%s ", "-");
+            fprintf(fp, " %s ", "-");
             break;
         case BINOP_MUL:
-            fprintf(fp, "%s ", "*");
+            fprintf(fp, " %s ", "*");
             break;
         case BINOP_DIV:
             fprintf(fp, "%s ", "/");
