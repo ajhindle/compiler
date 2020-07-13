@@ -44,7 +44,7 @@ typedef enum {
 extern const char *unopname[];
 
 typedef enum {
-    EXPR_ID, EXPR_CONST, EXPR_BINOP, EXPR_UNOP
+    EXPR_ID, EXPR_INTCONST, EXPR_FLTCONST, EXPR_BINOP, EXPR_UNOP
 } EKind;
 
 struct s_expr {

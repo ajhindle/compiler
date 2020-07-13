@@ -26,6 +26,7 @@ void *allocate(int size);
 %union {
     int         int_val;
     char        *str_val;
+    float       float_val;
     Decl        decl_val;
     Decls       decls_val;
     VarName     varname_val;
@@ -49,7 +50,8 @@ void *allocate(int size);
 %token PROC_TOKEN   END_TOKEN
 %token VAL_TOKEN    REF_TOKEN  VALRES_TOKEN
 %token INVALID_TOKEN
-%token <int_val> NUMBER_TOKEN
+%token <int_val> INT_VAL_TOKEN
+%token <float_val> FLT_VAL_TOKEN
 %token <str_val> IDENT_TOKEN
 
 /* Standard operator precedence */
@@ -430,12 +432,21 @@ expression
           $$->e2 = NULL;
         }
 
-    | NUMBER_TOKEN
+    | INT_VAL_TOKEN
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_lineno = ln;
-          $$->e_kind = EXPR_CONST;
+          $$->e_kind = EXPR_INTCONST;
           $$->e_val = $1;
+          $$->e2 = NULL;
+          $$->e2 = NULL;
+        }
+    | FLT_VAL_TOKEN
+        {
+          $$ = allocate(sizeof(struct s_expr));
+          $$->e_lineno = ln;
+          $$->e_kind = EXPR_FLTCONST;
+          $$->e_float = $1;
           $$->e2 = NULL;
           $$->e2 = NULL;
         }

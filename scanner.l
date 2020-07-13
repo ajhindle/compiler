@@ -45,7 +45,8 @@ ref             { return REF_TOKEN; }
 val             { return VAL_TOKEN; }
 valres          { return VALRES_TOKEN; }
 
-{NUM}           { yylval.int_val = atoi(yytext); return NUMBER_TOKEN; }
+{NUM}           { yylval.int_val = atoi(yytext); return INT_VAL_TOKEN; }
+{NUM}"."{NUM}   { yylval.float_val = strtod(yytext,NULL); return FLT_VAL_TOKEN; }
 
 {ID}            { yylval.str_val = (char *) strdup(yytext); return IDENT_TOKEN; }
 
