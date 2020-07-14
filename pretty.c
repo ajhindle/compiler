@@ -6,9 +6,9 @@ extern void report_error_and_exit(const char *msg);
 const int INDENT = 4;
 const int INDENT_START = 0;
 
-void print_proc(FILE *fp, int indent, Proc proc);
+void print_procs(FILE *fp, int indent, Procs procs);
 void print_header(FILE *fp, int indent, Header heaccder);
-void print_param(FILE *fp, Param param);
+void print_params(FILE *fp, Params params);
 void print_decls(FILE *fp, Decls decls);
 void print_type(FILE *fp, VType type);
 void print_varnames(FILE *fp, VarNames varnames);
@@ -23,68 +23,38 @@ pretty_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    Procs   next_procs;
-    Proc    curr_proc;
-    int     indent;
-
-    curr_proc = prog->procs->p_first;
-    next_procs = prog->procs->p_rest;
-    indent = INDENT_START;
-
-    while(curr_proc != NULL) {
-        print_proc(fp, indent, curr_proc);
-        if (next_procs != NULL) {
-            curr_proc = next_procs->p_first;
-            next_procs = next_procs->p_rest;
-        }
-        else
-            curr_proc = NULL;
-    }
+    int indent = INDENT_START;
+    print_procs(fp, indent, prog->procs);
 }
 
 void
-print_proc(FILE *fp, int indent, Proc proc) {
+print_procs(FILE *fp, int indent, Procs procs) {
     fprintf(fp, "%*s ", indent, "proc"); 
-    print_header(fp, indent, proc->p_header);
-    if(proc->p_decls != NULL)
-        print_decls(fp, proc->p_decls);
-    print_statements(fp, indent, proc->p_body);
+    print_header(fp, indent, procs->p_first->p_header);
+    if(procs->p_first->p_decls != NULL)
+        print_decls(fp, procs->p_first->p_decls);
+    print_statements(fp, indent, procs->p_first->p_body);
     fprintf(fp, "%*s", indent, "end\n\n"); 
+    
+    if(procs->p_rest != NULL)
+        print_procs(fp, indent, procs->p_rest);
 }
 
 void 
 print_header(FILE *fp, int indent, Header header) {
 
-    char    *h_id;
-    Param    curr_param;
-    Params   next_params;
-    
-    h_id = header->h_id;
-    fprintf(fp, "%s(", h_id);
+    fprintf(fp, "%s(", header->h_id);
    
-    if (header->h_params != NULL) {
-        curr_param = header->h_params->p_first;
-        next_params = header->h_params->p_rest;
-
-        while(curr_param != NULL) {
-            print_param(fp, curr_param);
-            if (next_params != NULL) {
-                curr_param = next_params->p_first;
-                next_params = next_params->p_rest;
-                fprintf(fp, ", ");
-            }
-            else
-                curr_param = NULL;
-        }
-    }
+    if (header->h_params != NULL) 
+        print_params(fp, header->h_params);
 
     fprintf(fp, ")\n");
 }
 
 void 
-print_param(FILE *fp, Param param) {
+print_params(FILE *fp, Params params) {
 
-    switch (param->d_kind) {
+    switch (params->p_first->d_kind) {
         case VAL:
             fprintf(fp, "%s ", "val");
             break;
@@ -96,31 +66,23 @@ print_param(FILE *fp, Param param) {
             break;
     }
 
-    print_type(fp, param->d_type);
-    fprintf(fp, "%s", param->d_id);
+    print_type(fp, params->p_first->d_type);
+    fprintf(fp, "%s", params->p_first->d_id);
+
+    if (params->p_rest != NULL) {
+        fprintf(fp, ", ");
+        print_params(fp, params->p_rest);
+    }
 }
 
 void
 print_decls(FILE *fp, Decls decls) {
 
-    Decl    curr_decl;
-    Decls   next_decls;
-    
-    curr_decl = decls->d_first;
-    next_decls = decls->d_rest;
-
-    while(curr_decl != NULL) {
-        /* fprintf(fp, "%s", curr_decl->); */
-        print_type(fp, curr_decl->d_type);
-        print_varnames(fp, curr_decl->d_varnames);
-        fprintf(fp, ";\n");
-        if (next_decls != NULL) {
-            curr_decl = next_decls->d_first;
-            next_decls = next_decls->d_rest;
-        }
-        else
-            curr_decl = NULL;
-    }
+    print_type(fp, decls->d_first->d_type);
+    print_varnames(fp, decls->d_first->d_varnames);
+    fprintf(fp, ";\n");
+    if (decls->d_rest != NULL) 
+        print_decls(fp, decls->d_rest); 
 }
 
 void
