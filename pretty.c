@@ -200,10 +200,9 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, "%s ", "for");
             break;
         case STMT_CALL:
-            fprintf(fp, "%s ", "call");
-            break;
-        default:
-            fprintf(fp, "%s ", "UNKNOWN");
+            fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
+            print_expressions(fp, 2, stmt->s_info.s_call.s_exprs);
+            fprintf(fp, ")");
             break;
     }
 }
@@ -213,8 +212,10 @@ print_expressions(FILE *fp, int indent, Exprs exprs) {
     /* only used in Calls ? */
     print_expression(fp, exprs->e_first);
         
-    if (exprs->e_rest != NULL) 
+    if (exprs->e_rest != NULL) {
+        fprintf(fp, ", ");
         print_expressions(fp, indent, exprs->e_rest);
+    }
 }
 
 void

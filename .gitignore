@@ -1,4 +1,5 @@
 *.swp
+*.k
 *.o
 *.output
 parser.c 
@@ -6,4 +7,4 @@ parser.h
 n7c
 scanner.c
 *~
-*.k
+

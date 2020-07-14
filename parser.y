@@ -34,6 +34,7 @@ void *allocate(int size);
     Param       param_val;
     Params      params_val;
     Expr        expr_val;
+    Exprs       exprs_val;
     Stmts       stmts_val;
     Stmt        stmt_val;
     VType       type_val;
@@ -77,6 +78,7 @@ void *allocate(int size);
 %type <stmts_val>   statement_list 
 %type <stmt_val>    statement 
 %type <expr_val>    expression 
+%type <exprs_val>   expression_list
 
 %type <int_val>   assign
 %type <int_val>   start_block
@@ -360,6 +362,30 @@ statement
           $$->s_kind = STMT_WHILE;
           $$->s_info.s_while.while_cond = $2;
           $$->s_info.s_while.while_body = $4;
+        }
+
+    | IDENT_TOKEN '(' expression_list ')'         
+        {
+          $$ = allocate(sizeof(struct s_stmt));
+          $$->s_info.s_call.call_id = $1;
+          $$->s_kind = STMT_CALL;
+          $$->s_info.s_call.s_exprs= $3;
+        }
+    ;
+
+expression_list 
+    : expression ',' expression_list
+        {
+          $$ = allocate(sizeof(struct s_exprs));
+          $$->e_first = $1;
+          $$->e_rest = $3;
+        }
+
+    | expression
+        {
+          $$ = allocate(sizeof(struct s_exprs));
+          $$->e_first = $1;
+          $$->e_rest = NULL;
         }
     ;
 
