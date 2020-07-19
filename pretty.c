@@ -5,6 +5,8 @@ extern void report_error_and_exit(const char *msg);
 
 const int INDENT = 4;
 const int INDENT_START = 0;
+const char *binopname[] = {BINOP_NAMES};
+const char *unopname[] = {UNOP_NAMES};
 
 void print_procs(FILE *fp, int indent, Procs procs);
 void print_header(FILE *fp, int indent, Header heaccder);
@@ -14,9 +16,9 @@ void print_type(FILE *fp, VType type);
 void print_varnames(FILE *fp, VarNames varnames);
 void print_statements(FILE *fp, int indent, Stmts stmts);
 void print_statement(FILE *fp, Stmt stmt);
-void print_binop(FILE *fp, BinOp binop);
 void print_expressions(FILE *fp, int ident, Exprs exprs);
 void print_expression(FILE *fp, Expr expr);
+
 
 void
 pretty_prog(FILE *fp, Program prog) {
@@ -210,20 +212,19 @@ print_expression(FILE *fp, Expr expr) {
             if (expr->e1->e_kind == EXPR_BINOP) {
                 fprintf(fp, "%s", "(");
                 print_expression(fp, expr->e1);
-            /* fprintf(fp, " %s ", binopname[expr->e_binop]);*/
-                print_binop(fp, expr->e_binop);
+                fprintf(fp, " %s ", binopname[expr->e_binop]);
                 print_expression(fp, expr->e2);
                 fprintf(fp, "%s", ")");
             }
             else {
                 print_expression(fp, expr->e1);
-                print_binop(fp, expr->e_binop);
+                fprintf(fp, " %s ", binopname[expr->e_binop]);
                 print_expression(fp, expr->e2);
             }
 
             break;
         case EXPR_UNOP:
-            /* TODO define print_unop if necessary */
+            fprintf(fp, " %s", unopname[expr->e_unop]);
             print_expression(fp, expr->e1);
             break;
         default: 
@@ -232,47 +233,3 @@ print_expression(FILE *fp, Expr expr) {
     }
 }
 
-void
-print_binop(FILE *fp, BinOp binop) {
-    switch (binop) {
-        case BINOP_ADD:
-            fprintf(fp, " %s ", "+");
-            break;
-        case BINOP_SUB:
-            fprintf(fp, " %s ", "-");
-            break;
-        case BINOP_MUL:
-            fprintf(fp, " %s ", "*");
-            break;
-        case BINOP_DIV:
-            fprintf(fp, "%s ", "/");
-            break;
-        case BINOP_EQ:
-            fprintf(fp, "%s ", "=");
-            break;
-        case BINOP_NE:
-            fprintf(fp, "%s ", "!=");
-            break;
-        case BINOP_LT:
-            fprintf(fp, "%s ", "<");
-            break;
-        case BINOP_LE:
-            fprintf(fp, "%s ", "<=");
-            break;
-        case BINOP_GT:
-            fprintf(fp, "%s ", ">");
-            break;
-        case BINOP_GE:
-            fprintf(fp, "%s ", ">=");
-            break;
-        case BINOP_OR:
-            fprintf(fp, "%s ", "or");
-            break;
-        case BINOP_AND:
-            fprintf(fp, "%s ", "and");
-            break;
-        default:
-            fprintf(fp, "%s ", "UNKNOWN");
-            break;
-    }
-}
