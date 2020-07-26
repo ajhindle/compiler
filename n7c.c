@@ -4,6 +4,7 @@
     A driver for a parser and pretty-printer for n7, for use in 
     433-361 asg 1, 2007.
     Harald Sondergaard, August 2007.
+    ajh3000, July 2020.
 ---------------------------------------------------------------------------*/
 
 #include    <string.h>
@@ -12,6 +13,7 @@
 #include    "std.h"
 #include    "pretty.h"
 #include    "missing.h"
+#include    "codegen.h"
 
 const char  *progname;
 const char  *n7_infile;
@@ -65,7 +67,8 @@ main(int argc, char **argv) {
     if (pretty_print_only) 
         pretty_prog(fp, parsed_program);
     else
-        report_error_and_exit("Unable to generate code");
+        /* report_error_and_exit("Unable to generate code"); */
+        gen_prog(fp, parsed_program);
 
     return 0;
 }

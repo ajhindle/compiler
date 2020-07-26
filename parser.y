@@ -369,7 +369,7 @@ statement
           $$ = allocate(sizeof(struct s_stmt));
           $$->s_info.s_call.call_id = $1;
           $$->s_kind = STMT_CALL;
-          $$->s_info.s_call.s_exprs= $3;
+          $$->s_info.s_call.s_exprs = $3;
         }
     ;
 
