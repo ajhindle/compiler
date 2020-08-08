@@ -17,11 +17,12 @@ void gen_params(FILE *fp, Params params);
 void gen_decls(FILE *fp, Decls decls);
 void gen_type(FILE *fp, VType type);
 void gen_varnames(FILE *fp, VarNames varnames);
-void gen_statements(FILE *fp, int indent, Stmts stmts);
-void gen_statement(FILE *fp, Stmt stmt);
-void gen_expressions(FILE *fp, int ident, Exprs exprs);
-void gen_expression(FILE *fp, Expr expr);
+void gen_statements(FILE *fp, int *curr_reg, Stmts stmts);
+void gen_statement(FILE *fp, int *curr_reg, Stmt stmt);
+void gen_expressions(FILE *fp, int *curr_reg, Exprs exprs);
+void gen_expression(FILE *fp, int *curr_reg, Expr expr);
 void print_instruction(FILE *fp, Instr instr);
+char *gen_nextreg(int *curr_reg); 
 
 void
 gen_prog(FILE *fp, Program prog) {
@@ -35,17 +36,21 @@ gen_prog(FILE *fp, Program prog) {
 void
 gen_procs(FILE *fp, int indent, Procs procs) {
 
+    int     curr_reg = 5;
+
     fprintf(fp, "%*s ", indent, "proc"); 
     gen_header(fp, indent, procs->p_first->p_header);
 
     if(procs->p_first->p_decls != NULL)
         gen_decls(fp, procs->p_first->p_decls);
     
-    gen_statements(fp, indent, procs->p_first->p_body);
+    gen_statements(fp, &curr_reg, procs->p_first->p_body);
     fprintf(fp, "%*s", indent, "\nend\n\n"); 
     
     if(procs->p_rest != NULL)
         gen_procs(fp, indent, procs->p_rest);
+
+    fprintf(fp, "next reg: r%d\n", curr_reg);
 }
 
 void 
@@ -117,15 +122,17 @@ gen_type(FILE *fp, VType type) {
 }
 
 void
-gen_statements(FILE *fp, int indent, Stmts stmts) {
+gen_statements(FILE *fp, int *curr_reg, Stmts stmts) {
+
+    /* fprintf(fp, "curr_reg address: %p\ncurr_reg value: %d\n", curr_reg, 
+     * *curr_reg); */
 
     if (stmts->s_first != NULL) {
-        gen_statement(fp, stmts->s_first); 
+        gen_statement(fp, curr_reg, stmts->s_first); 
     }
 
     if (stmts->s_rest != NULL) {
-        fprintf(fp, ";\n");
-        gen_statements(fp, indent, stmts->s_rest); 
+        gen_statements(fp, curr_reg, stmts->s_rest); 
     }
 }
 
@@ -139,38 +146,49 @@ print_instruction(FILE *fp, Instr instr) {
     if (instr->arg2 != NULL) fprintf(fp, "%s ", instr->arg2);
     if (instr->arg3 != NULL) fprintf(fp, "%s ", instr->arg3);
     fprintf(fp, "\n");
-    
+}
+
+char
+*gen_nextreg(int *curr_reg) {
+    char    *reg = checked_malloc(sizeof(char[5]));
+
+    sprintf(reg, "r%d", *curr_reg);
+    *curr_reg = *curr_reg + 1;
+
+    return reg;
 }
 
 void
-gen_statement(FILE *fp, Stmt stmt) {
+gen_statement(FILE *fp, int *curr_reg, Stmt stmt) {
+
+    /* fprintf(fp, "curr_reg address: %p\ncurr_reg value: %d\n", curr_reg, 
+    * *curr_reg); */
 
     SKind s_kind = stmt->s_kind;
-    int place;
 
     switch (s_kind) {
         case STMT_ASSIGN:
             /* fprintf(fp, "%s := ", stmt->s_info.s_assign.asg_id); */
-            place = 0;
-            /* gen_expression(fp, stmt->s_info.s_assign.asg_expr); */
+            gen_expression(fp, curr_reg, stmt->s_info.s_assign.asg_expr); 
             stmt->s_code = checked_malloc(sizeof(struct s_instr));
             stmt->s_code->op = STORE;
             stmt->s_code->arg1 = "1";
-            stmt->s_code->arg2 = "r1";
+            stmt->s_code->arg2 = gen_nextreg(curr_reg);
             print_instruction(fp, stmt->s_code);
+            /* fprintf(fp, "next reg: r%d\n", *curr_reg); */
             break;
         case STMT_BLOCK:
             fprintf(fp, "{\n");
-            gen_statements(fp, 2, stmt->s_info.s_block);
+            gen_statements(fp, curr_reg, stmt->s_info.s_block);
             fprintf(fp, "\n}");
             break;
         case STMT_COND:
             fprintf(fp, "%s ", "if");
-            gen_expression(fp, stmt->s_info.s_cond.if_cond);
+            gen_expression(fp, curr_reg, stmt->s_info.s_cond.if_cond);
             fprintf(fp, " %s ", "then");
-            gen_statement(fp, stmt->s_info.s_cond.if_then);
+            gen_statement(fp, curr_reg, stmt->s_info.s_cond.if_then);
             fprintf(fp, "%s ", "\nelse");
-            gen_statement(fp, stmt->s_info.s_cond.if_else);
+            gen_statement(fp, curr_reg, stmt->s_info.s_cond.if_else);
             break;
         case STMT_READ:
             fprintf(fp, "%s ", "read");
@@ -181,52 +199,62 @@ gen_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_WHILE:
             fprintf(fp, "%s ", "while");
-            gen_expression(fp, stmt->s_info.s_while.while_cond);
+            gen_expression(fp, curr_reg, stmt->s_info.s_while.while_cond);
             fprintf(fp, " %s ", "do");
-            gen_statement(fp, stmt->s_info.s_while.while_body);
+            gen_statement(fp, curr_reg, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
             fprintf(fp, "%s ", "write");
-            gen_expression(fp, stmt->s_info.s_write);
+            gen_expression(fp, curr_reg, stmt->s_info.s_write);
             break;
         case STMT_FOR:
             fprintf(fp, "%s ", "for");
             fprintf(fp, "%s ", stmt->s_info.s_for.for_id);
-            gen_expression(fp, stmt->s_info.s_for.for_from_expr);
+            gen_expression(fp, curr_reg, stmt->s_info.s_for.for_from_expr);
             fprintf(fp, " %s ", "do");
-            gen_expression(fp, stmt->s_info.s_for.for_to_expr);
-            gen_statement(fp, stmt->s_info.s_for.for_body);
+            gen_expression(fp, curr_reg, stmt->s_info.s_for.for_to_expr);
+            gen_statement(fp, curr_reg, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
             fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
-            gen_expressions(fp, 2, stmt->s_info.s_call.s_exprs);
+            gen_expressions(fp, curr_reg, stmt->s_info.s_call.s_exprs);
             fprintf(fp, ")");
             break;
     }
 }
 
 void
-gen_expressions(FILE *fp, int indent, Exprs exprs) {
+gen_expressions(FILE *fp, int *curr_reg, Exprs exprs) {
     /* only used in Calls ? */
-    gen_expression(fp, exprs->e_first);
+    gen_expression(fp, curr_reg, exprs->e_first);
         
     if (exprs->e_rest != NULL) {
         fprintf(fp, ", ");
-        gen_expressions(fp, indent, exprs->e_rest);
+        gen_expressions(fp, curr_reg, exprs->e_rest);
     }
 }
 
 void
-gen_expression(FILE *fp, Expr expr) {
+gen_expression(FILE *fp, int *curr_reg, Expr expr) {
 
     EKind e_kind = expr->e_kind;
 
     switch (e_kind) {
         case EXPR_ID:
-            fprintf(fp, "%s", expr->e_id);
+            /* fprintf(fp, "%s", expr->e_id); */
+            expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_code->op = LOAD;
+            expr->e_code->arg1 = gen_nextreg(curr_reg);
+            expr->e_code->arg2 = "1";
+            print_instruction(fp, expr->e_code);
             break;
         case EXPR_INTCONST:
-            fprintf(fp, "%d", expr->e_val);
+            /* fprintf(fp, "%d", expr->e_val); */
+            expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_code->op = INT_CONST;
+            expr->e_code->arg1 = gen_nextreg(curr_reg);
+            expr->e_code->arg2 = "31";
+            print_instruction(fp, expr->e_code);
             break;
         case EXPR_FLTCONST:
             fprintf(fp, "%.2f", expr->e_float);
@@ -234,20 +262,20 @@ gen_expression(FILE *fp, Expr expr) {
         case EXPR_BINOP:
             if (expr->e1->e_kind == EXPR_BINOP) {
                 fprintf(fp, "%s", "(");
-                gen_expression(fp, expr->e1);
+                gen_expression(fp, curr_reg, expr->e1);
                 fprintf(fp, " %s ", binopname[expr->e_binop]);
-                gen_expression(fp, expr->e2);
+                gen_expression(fp, curr_reg, expr->e2);
                 fprintf(fp, "%s", ")");
             }
             else {
-                gen_expression(fp, expr->e1);
+                gen_expression(fp, curr_reg, expr->e1);
                 fprintf(fp, " %s ", binopname[expr->e_binop]);
-                gen_expression(fp, expr->e2);
+                gen_expression(fp, curr_reg, expr->e2);
             }
             break;
         case EXPR_UNOP:
             fprintf(fp, " %s", unopname[expr->e_unop]);
-            gen_expression(fp, expr->e1);
+            gen_expression(fp, curr_reg, expr->e1);
             break;
     }
 }
