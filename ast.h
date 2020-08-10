@@ -13,8 +13,8 @@ typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
 typedef struct s_varname    *VarName;
 typedef struct s_varnames 	*VarNames;
-typedef struct s_param	    *Param;
-typedef struct s_params	    *Params;
+typedef struct s_param      *Param;
+typedef struct s_params     *Params;
 typedef struct s_expr   	*Expr;
 typedef struct s_exprs		*Exprs;
 typedef struct s_stmts  	*Stmts;
@@ -131,6 +131,7 @@ struct s_decls {
 
 struct s_varname {
     char    *v_id;
+    Instr   v_code;
 };
 
 struct s_varnames {

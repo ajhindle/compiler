@@ -209,7 +209,11 @@ print_expression(FILE *fp, Expr expr) {
             fprintf(fp, "%.2f", expr->e_float);
             break;
         case EXPR_BINOP:
-            if (expr->e1->e_kind == EXPR_BINOP) {
+            if (expr->e1->e_kind != EXPR_BINOP && 
+                    expr->e1->e_kind != EXPR_UNOP && 
+                    expr->e2->e_kind != EXPR_BINOP && 
+                    expr->e2->e_kind != EXPR_UNOP ) 
+            {
                 fprintf(fp, "%s", "(");
                 print_expression(fp, expr->e1);
                 fprintf(fp, " %s ", binopname[expr->e_binop]);
