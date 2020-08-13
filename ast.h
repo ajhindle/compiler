@@ -49,24 +49,34 @@ typedef enum {
     EXPR_ID, EXPR_INTCONST, EXPR_FLTCONST, EXPR_BINOP, EXPR_UNOP
 } EKind;
 
+typedef enum {
+	VAL, REF, VALRES
+} PKind;
+
+typedef enum {
+	INT, FLOAT
+} VType;
+
 struct s_expr {
     int     e_lineno;
     EKind   e_kind;
     char    *e_id;      /* for ID */
-    int     e_val;      /* for integer values */
-	float	e_float;	/* for float values */
+    int     e_intval;   /* for integer values */
+	float	e_fltval;	/* for float values */
     UnOp    e_unop;     /* for UNOP */
     BinOp   e_binop;    /* for BINOP */
     Expr    e1;         /* for UNOP and BINOP */
     Expr    e2;         /* for BINOP */
-    Instr   e_code;
+    Instr   e_code;     /* code generation instruction */
+    char    *e_place;   /* code generation place (register) */
+    VType   e_type;     /* expression type */
 };
 
 typedef enum {
     PUSH_STACK_FRAME, POP_STACK_FRAME,
     LOAD, STORE, LOAD_ADDR, LOAD_IND, STORE_IND, 
     INT_CONST, REAL_CONST, STRING_CONST,
-    ADD_INT, ADD_REAL, SUB_INT, SBU_REAL, MUL_INT, MUL_REAL,
+    ADD_INT, ADD_REAL, SUB_INT, SUB_REAL, MUL_INT, MUL_REAL,
     DIV_INT, DIV_REAL,
     AND, OR, NOT, INT_TO_REAL, MOVE,  
     BRANCH_ON_TRUE, BRANCH_ON_FALSE, BRANCH_UNCOND, 
@@ -81,7 +91,7 @@ typedef enum {
 
 #define INSTR_OPNAMES "push_stack_frame", "pop_stack_frame", "load", \
 "store", "load_address", "load_indirect", "store_indirect", "int_const", \
-"real_const", "string_const", "string_const  ", "add_int", "add_real", \
+"real_const", "string_const", "add_int", "add_real", \
 "sub_int", "sub_real", "mul_int", "mul_real", "div_int", "div_real", \
 "cmp_eq_int", "cmp_ne_int", "cmp_gt_int", "cmp_ge_int", "cmp_lt_int", \
 "cmp_le_int", "cmp_eq_real", "cmp_ne_real", "cmp_gt_real", "cmp_ge_real", \
@@ -98,13 +108,7 @@ struct s_instr {
     char    *arg3;
 };
 
-typedef enum {
-	VAL, REF, VALRES
-} PKind;
 
-typedef enum {
-	INT, FLOAT
-} VType;
 
 struct s_param {
 	int		d_lineno;

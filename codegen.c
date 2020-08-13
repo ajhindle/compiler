@@ -23,6 +23,7 @@ void gen_expressions(FILE *fp, int *curr_reg, Exprs exprs);
 void gen_expression(FILE *fp, int *curr_reg, Expr expr);
 void print_instruction(FILE *fp, Instr instr);
 char *gen_nextreg(int *curr_reg); 
+void gen_binop(FILE *fp, int *curr_reg, Expr expr); 
 
 void
 gen_prog(FILE *fp, Program prog) {
@@ -46,7 +47,7 @@ gen_procs(FILE *fp, int indent, Procs procs) {
     
     gen_statements(fp, &curr_reg, procs->p_first->p_body);
     
-    fprintf(fp, "    pop_stack_frame X:\n" );
+    fprintf(fp, "    pop_stack_frame X\n" );
     fprintf(fp, "    return\n" );
     if(procs->p_rest != NULL)
         gen_procs(fp, indent, procs->p_rest);
@@ -57,7 +58,7 @@ void
 gen_header(FILE *fp, int *curr_reg, Header header) {
 
     fprintf(fp, "proc_%s:\n", header->h_id);
-    fprintf(fp, "    push_stack_frame X:\n" );
+    fprintf(fp, "    push_stack_frame X\n" );
    
     if (header->h_params != NULL) 
         gen_params(fp, header->h_params);
@@ -257,24 +258,27 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
         case EXPR_ID:
             /* fprintf(fp, "%s", expr->e_id); */
             expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_place = gen_nextreg(curr_reg);
             expr->e_code->op = LOAD;
-            expr->e_code->arg1 = gen_nextreg(curr_reg);
+            expr->e_code->arg1 = expr->e_place;
             expr->e_code->arg2 = "1";
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_INTCONST:
             /* fprintf(fp, "%d", expr->e_val); */
             expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_place = gen_nextreg(curr_reg);
             expr->e_code->op = INT_CONST;
-            expr->e_code->arg1 = gen_nextreg(curr_reg);
+            expr->e_code->arg1 = expr->e_place;
             expr->e_code->arg2 = "31";
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_FLTCONST:
-            fprintf(fp, "%.2f", expr->e_float);
+            /* fprintf(fp, "%.2f", expr->e_fltval); */
             expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_place = gen_nextreg(curr_reg);
             expr->e_code->op = REAL_CONST;
-            expr->e_code->arg1 = gen_nextreg(curr_reg);
+            expr->e_code->arg1 = expr->e_place;
             expr->e_code->arg2 = "41";
             print_instruction(fp, expr->e_code);
             break;
@@ -282,6 +286,12 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
             gen_expression(fp, curr_reg, expr->e1);
             /* fprintf(fp, " %s ", binopname[expr->e_binop]);*/
             gen_expression(fp, curr_reg, expr->e2);
+            expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_code->op = MUL_INT;
+            expr->e_code->arg1 = expr->e1->e_place;
+            expr->e_code->arg2 = expr->e1->e_place;
+            expr->e_code->arg3 = gen_nextreg(curr_reg);
+            print_instruction(fp, expr->e_code);
             break;
         case EXPR_UNOP:
             fprintf(fp, " %s", unopname[expr->e_unop]);
@@ -290,3 +300,23 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
     }
 }
 
+void
+gen_binop(FILE *fp, int *curr_reg, Expr expr) {
+
+    EKind e_binop = expr->e_binop;
+
+    switch (e_binop) {
+        case BINOP_MUL:     /* TODO add handle for REAL type */
+            /* fprintf(fp, "%s", expr->e_id); */
+            expr->e_code = checked_malloc(sizeof(struct s_instr));
+            expr->e_code->op = MUL_INT;
+            expr->e_code->arg1 = gen_nextreg(curr_reg);
+            expr->e_code->arg2 = "1";
+            expr->e_code->arg3 = gen_nextreg(curr_reg);
+            print_instruction(fp, expr->e_code);
+            break;
+        default:
+            /* fprintf(fp, "%d", expr->e_val); */
+            break;
+    }
+}

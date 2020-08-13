@@ -463,7 +463,7 @@ expression
           $$ = allocate(sizeof(struct s_expr));
           $$->e_lineno = ln;
           $$->e_kind = EXPR_INTCONST;
-          $$->e_val = $1;
+          $$->e_intval = $1;
           $$->e2 = NULL;
           $$->e2 = NULL;
         }
@@ -472,7 +472,7 @@ expression
           $$ = allocate(sizeof(struct s_expr));
           $$->e_lineno = ln;
           $$->e_kind = EXPR_FLTCONST;
-          $$->e_float = $1;
+          $$->e_fltval = $1;
           $$->e2 = NULL;
           $$->e2 = NULL;
         }

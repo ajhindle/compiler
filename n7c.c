@@ -13,6 +13,7 @@
 #include    "std.h"
 #include    "pretty.h"
 #include    "missing.h"
+#include    "analyser.h"
 #include    "codegen.h"
 
 const char  *progname;
@@ -66,9 +67,11 @@ main(int argc, char **argv) {
 
     if (pretty_print_only) 
         pretty_prog(fp, parsed_program);
-    else
+    else {
         /* report_error_and_exit("Unable to generate code"); */
+        analyse_prog(fp, parsed_program);
         gen_prog(fp, parsed_program);
+    }
 
     return 0;
 }

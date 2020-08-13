@@ -203,10 +203,10 @@ print_expression(FILE *fp, Expr expr) {
             fprintf(fp, "%s", expr->e_id);
             break;
         case EXPR_INTCONST:
-            fprintf(fp, "%d", expr->e_val);
+            fprintf(fp, "%d", expr->e_intval);
             break;
         case EXPR_FLTCONST:
-            fprintf(fp, "%.2f", expr->e_float);
+            fprintf(fp, "%.2f", expr->e_fltval);
             break;
         case EXPR_BINOP:
             if (expr->e1->e_kind != EXPR_BINOP && 
