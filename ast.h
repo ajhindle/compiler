@@ -26,14 +26,32 @@ typedef struct s_prog   	*Program;
 
 typedef	struct s_instr		*Instr;
 
-/* added BINOP_DIV */
 typedef enum {
     BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, 
 	BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
 	BINOP_OR, BINOP_AND
 } BinOp;
 
-#define BINOP_NAMES "+", "-", "*", "/", "=", "!=", "<", "<=", ">", ">=", "and", "or"
+/* typedef enum {
+    ADD_INT, ADD_REAL, SUB_INT, SUB_REAL, MUL_INT, MUL_REAL,
+    DIV_INT, DIV_REAL,
+    AND, OR, 
+    CMP_EQ_INT, CMP_NE_INT, CPM_GT_INT, CMP_GE_INT, 
+    CMP_LT_INT, CMP_LE_INT, 
+    CMP_EQ_REAL, CMP_NE_REAL, CPM_GT_REAL, CMP_GE_REAL 
+} ;
+*/
+
+#define BINOP_NAMES "+", "-", "*", "/", "=", "!=", "<", "<=", \
+    ">", ">=", "and", "or"
+
+#define CG_BINOP_INT "add_int", "sub_int", "mul_int", "div_int", \
+"cmp_eq_int", "cmp_ne_int", "cmp_lt_int", "cmp_le_int", \
+"cmp_gt_int", "cmp_ge_int", "and", "or" 
+
+#define CG_BINOP_REAL "add_real", "sub_real", "mul_real", "div_real", \
+"cmp_eq_real", "cmp_ne_real", "cmp_lt_real", "cmp_le_real", \
+"cmp_gt_real", "cmp_ge_real", "and", "or" 
 
 extern const char *binopname[];
 
@@ -73,31 +91,37 @@ struct s_expr {
 };
 
 typedef enum {
+    ADD_INT, ADD_REAL, SUB_INT, SUB_REAL, 
+    MUL_INT, MUL_REAL, DIV_INT, DIV_REAL,
+    CMP_EQ_INT, CMP_NE_INT, CMP_GT_INT, CMP_GE_INT, 
+    CMP_LT_INT, CMP_LE_INT, CMP_EQ_REAL, CMP_NE_REAL, 
+    CMP_GT_REAL, CMP_GE_REAL, CMP_LT_REAL, CMP_LE_REAL, 
+    AND, OR, NOT,
+    INT_TO_REAL, MOVE,  
     PUSH_STACK_FRAME, POP_STACK_FRAME,
     LOAD, STORE, LOAD_ADDR, LOAD_IND, STORE_IND, 
     INT_CONST, REAL_CONST, STRING_CONST,
-    ADD_INT, ADD_REAL, SUB_INT, SUB_REAL, MUL_INT, MUL_REAL,
-    DIV_INT, DIV_REAL,
-    AND, OR, NOT, INT_TO_REAL, MOVE,  
-    BRANCH_ON_TRUE, BRANCH_ON_FALSE, BRANCH_UNCOND, 
-    CMP_EQ_INT, CMP_NE_INT, CPM_GT_INT, CMP_GE_INT, 
-    CMP_LT_INT, CMP_LE_INT, 
-    CMP_EQ_REAL, CMP_NE_REAL, CPM_GT_REAL, CMP_GE_REAL, 
-    CMP_LT_REAL, CMP_LE_REAL, 
     CALL, CALL_BUILTIN, RETURN,
+    BRANCH_ON_TRUE, BRANCH_ON_FALSE, BRANCH_UNCOND, 
     DEBUG_REG, DEBUG_SLOT, DEBUG_STACK,
     HALT
 } Op;
 
-#define INSTR_OPNAMES "push_stack_frame", "pop_stack_frame", "load", \
-"store", "load_address", "load_indirect", "store_indirect", "int_const", \
-"real_const", "string_const", "add_int", "add_real", \
-"sub_int", "sub_real", "mul_int", "mul_real", "div_int", "div_real", \
-"cmp_eq_int", "cmp_ne_int", "cmp_gt_int", "cmp_ge_int", "cmp_lt_int", \
-"cmp_le_int", "cmp_eq_real", "cmp_ne_real", "cmp_gt_real", "cmp_ge_real", \
-"cmp_lt_real", "cmp_le_real", "and", "or", "not", "int_to_real", "move", \
-"branch_on_true", "branch_on_false", "branch_uncond", "call", \
-"call_builtin", "return", "debug_reg", "debug_slot", "debug_stack", "halt"
+#define INSTR_OPNAMES \
+"add_int", "add_real",  "sub_int", "sub_real", \
+"mul_int", "mul_real", "div_int", "div_real", \
+"cmp_eq_int", "cmp_ne_int", "cmp_gt_int", "cmp_ge_int", \
+"cmp_lt_int", "cmp_le_int", "cmp_eq_real", "cmp_ne_real", \
+"cmp_gt_real", "cmp_ge_real", "cmp_lt_real", "cmp_le_real", \
+"and", "or", "not", \
+"int_to_real", "move", \
+"push_stack_frame", "pop_stack_frame", \
+"load", "store", "load_address", "load_indirect", "store_indirect", \
+"int_const", "real_const", "string_const", \
+"call", "call_builtin", "return", \
+"branch_on_true", "branch_on_false", "branch_uncond", \
+"debug_reg", "debug_slot", "debug_stack", \
+"halt"
 
 extern const char *instr_opnames[];
 

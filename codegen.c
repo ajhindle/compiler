@@ -3,12 +3,8 @@
 
 /* #extern void report_error_and_exit(const char *msg); */
 
-/*
-static const int INDENT = 4;
-static const int INDENT_START = 0;
-const char *binopname[] = {BINOP_NAMES};
-const char *unopname[] = {UNOP_NAMES};
-*/
+// const char *codegen_binop[][2] = {{CG_BINOP_INT}, {CG_BINOP_REAL}};
+
 void *checked_malloc(int num_bytes);
 
 void gen_procs(FILE *fp, int indent, Procs procs);
@@ -252,6 +248,7 @@ gen_expressions(FILE *fp, int *curr_reg, Exprs exprs) {
 void
 gen_expression(FILE *fp, int *curr_reg, Expr expr) {
 
+    char    *val = checked_malloc(sizeof(char[5]));
     EKind e_kind = expr->e_kind;
 
     switch (e_kind) {
@@ -261,25 +258,27 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
             expr->e_place = gen_nextreg(curr_reg);
             expr->e_code->op = LOAD;
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2 = "1";
+            expr->e_code->arg2 = "slot#";
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_INTCONST:
             /* fprintf(fp, "%d", expr->e_val); */
+            sprintf(val, "%d", expr->e_intval);
             expr->e_code = checked_malloc(sizeof(struct s_instr));
             expr->e_place = gen_nextreg(curr_reg);
             expr->e_code->op = INT_CONST;
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2 = "31";
+            expr->e_code->arg2 = val;
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_FLTCONST:
             /* fprintf(fp, "%.2f", expr->e_fltval); */
+            sprintf(val, "%.1f", expr->e_fltval);
             expr->e_code = checked_malloc(sizeof(struct s_instr));
             expr->e_place = gen_nextreg(curr_reg);
             expr->e_code->op = REAL_CONST;
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2 = "41";
+            expr->e_code->arg2 = val;
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:
@@ -287,6 +286,7 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
             /* fprintf(fp, " %s ", binopname[expr->e_binop]);*/
             gen_expression(fp, curr_reg, expr->e2);
             expr->e_code = checked_malloc(sizeof(struct s_instr));
+            //expr->e_code->op = codegen_binop[expr->e_type][expr->e_binop];
             expr->e_code->op = MUL_INT;
             expr->e_code->arg1 = expr->e1->e_place;
             expr->e_code->arg2 = expr->e1->e_place;
