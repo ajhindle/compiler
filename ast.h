@@ -243,6 +243,8 @@ struct s_proc {
     Header  p_header;
     Decls   p_decls;
     Stmts   p_body;
+    int     p_param_ct;
+    int     p_var_ct;
 };
 
 struct s_procs {

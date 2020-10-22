@@ -1,5 +1,5 @@
 /*
- * Username : ajhindle
+ * Username : ajh
  * Date     : 27-09-2006
  *
  * File     : hash_util.c

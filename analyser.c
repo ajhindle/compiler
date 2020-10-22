@@ -4,15 +4,15 @@
 extern void report_error_and_exit(const char *msg);
 
 
-void analyse_procs(FILE *fp, int indent, Procs procs);
-void analyse_header(FILE *fp, int indent, Header heaccder);
-void analyse_params(FILE *fp, Params params);
+void analyse_procs(FILE *fp, Procs procs);
+void analyse_header(FILE *fp, int *param_ct, Header header);
+void analyse_params(FILE *fp, int *param_ct, Params params);
 void analyse_decls(FILE *fp, Decls decls);
 void analyse_type(FILE *fp, VType type);
 void analyse_varnames(FILE *fp, VarNames varnames);
-void analyse_statements(FILE *fp, int indent, Stmts stmts);
+void analyse_statements(FILE *fp, Stmts stmts);
 void analyse_statement(FILE *fp, Stmt stmt);
-void analyse_expressions(FILE *fp, int ident, Exprs exprs);
+void analyse_expressions(FILE *fp, Exprs exprs);
 void analyse_expression(FILE *fp, Expr expr);
 
 
@@ -21,35 +21,41 @@ analyse_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    int indent = 0;
-    analyse_procs(fp, indent, prog->procs);
+    analyse_procs(fp, prog->procs);
 }
 
 void
-analyse_procs(FILE *fp, int indent, Procs procs) {
+analyse_procs(FILE *fp, Procs procs) {
 
-    analyse_header(fp, indent, procs->p_first->p_header);
+    Proc    curr_proc = procs->p_first;
+    int     param_ct = 0;
+
+    //procs->p_first->p_var_ct = 0;
+
+    analyse_header(fp, &param_ct, curr_proc->p_header);
+    
+    curr_proc->p_param_ct = param_ct;
 
     if(procs->p_first->p_decls != NULL)
-        analyse_decls(fp, procs->p_first->p_decls);
+        analyse_decls(fp, curr_proc->p_decls);
     
-    analyse_statements(fp, indent, procs->p_first->p_body);
-    
+    analyse_statements(fp, curr_proc->p_body);
+
     if(procs->p_rest != NULL)
-        analyse_procs(fp, indent, procs->p_rest);
+        analyse_procs(fp, procs->p_rest);
 }
 
 void 
-analyse_header(FILE *fp, int indent, Header header) {
-
+analyse_header(FILE *fp, int *param_ct, Header header) {
    
     if (header->h_params != NULL) 
-        analyse_params(fp, header->h_params);
-
+        analyse_params(fp, param_ct, header->h_params);
 }
 
 void 
-analyse_params(FILE *fp, Params params) {
+analyse_params(FILE *fp, int *param_ct, Params params) {
+
+    *param_ct = *param_ct + 1;
 
     switch (params->p_first->d_kind) {
         case VAL:
@@ -63,7 +69,7 @@ analyse_params(FILE *fp, Params params) {
     analyse_type(fp, params->p_first->d_type);
 
     if (params->p_rest != NULL) {
-        analyse_params(fp, params->p_rest);
+        analyse_params(fp, param_ct, params->p_rest);
     }
 }
 
@@ -96,14 +102,14 @@ analyse_type(FILE *fp, VType type) {
 }
 
 void
-analyse_statements(FILE *fp, int indent, Stmts stmts) {
+analyse_statements(FILE *fp, Stmts stmts) {
 
     if (stmts->s_first != NULL) {
         analyse_statement(fp, stmts->s_first); 
     }
 
     if (stmts->s_rest != NULL) {
-        analyse_statements(fp, indent, stmts->s_rest); 
+        analyse_statements(fp, stmts->s_rest); 
     }
 }
 
@@ -117,7 +123,7 @@ analyse_statement(FILE *fp, Stmt stmt) {
             analyse_expression(fp, stmt->s_info.s_assign.asg_expr);
             break;
         case STMT_BLOCK:
-            analyse_statements(fp, 2, stmt->s_info.s_block);
+            analyse_statements(fp, stmt->s_info.s_block);
             break;
         case STMT_COND:
             analyse_expression(fp, stmt->s_info.s_cond.if_cond);
@@ -141,18 +147,18 @@ analyse_statement(FILE *fp, Stmt stmt) {
             analyse_statement(fp, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
-            analyse_expressions(fp, 2, stmt->s_info.s_call.s_exprs);
+            analyse_expressions(fp, stmt->s_info.s_call.s_exprs);
             break;
     }
 }
 
 void
-analyse_expressions(FILE *fp, int indent, Exprs exprs) {
+analyse_expressions(FILE *fp, Exprs exprs) {
     /* only used in Calls ? */
     analyse_expression(fp, exprs->e_first);
         
     if (exprs->e_rest != NULL) {
-        analyse_expressions(fp, indent, exprs->e_rest);
+        analyse_expressions(fp, exprs->e_rest);
     }
 }
 

@@ -33,18 +33,23 @@ gen_prog(FILE *fp, Program prog) {
 void
 gen_procs(FILE *fp, int indent, Procs procs) {
 
+    Proc    curr_proc = procs->p_first;
+    int     slot_ct = curr_proc->p_param_ct;
     int     curr_reg = 0;
 
     /* fprintf(fp, "%s", "proc_");  */
-    gen_header(fp, &curr_reg, procs->p_first->p_header);
+    fprintf(fp, "proc_%s:\n", curr_proc->p_header->h_id);
+    fprintf(fp, "    push_stack_frame %d\n", slot_ct);
+    gen_header(fp, &curr_reg, curr_proc->p_header);
 
     if(procs->p_first->p_decls != NULL)
-        gen_decls(fp, &curr_reg, procs->p_first->p_decls);
+        gen_decls(fp, &curr_reg, curr_proc->p_decls);
     
-    gen_statements(fp, &curr_reg, procs->p_first->p_body);
+    gen_statements(fp, &curr_reg, curr_proc->p_body);
     
-    fprintf(fp, "    pop_stack_frame X\n" );
+    fprintf(fp, "    pop_stack_frame %d\n", slot_ct);
     fprintf(fp, "    return\n" );
+
     if(procs->p_rest != NULL)
         gen_procs(fp, indent, procs->p_rest);
 
@@ -53,12 +58,8 @@ gen_procs(FILE *fp, int indent, Procs procs) {
 void 
 gen_header(FILE *fp, int *curr_reg, Header header) {
 
-    fprintf(fp, "proc_%s:\n", header->h_id);
-    fprintf(fp, "    push_stack_frame X\n" );
-   
     if (header->h_params != NULL) 
         gen_params(fp, header->h_params);
-
 }
 
 void 
