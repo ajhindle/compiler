@@ -66,7 +66,7 @@ main(int argc, char **argv) {
     }
 
     if (pretty_print_only) 
-        pretty_prog(fp, parsed_program);
+        proc_prog(fp, parsed_program);
     else {
         /* report_error_and_exit("Unable to generate code"); */
         analyse_prog(fp, parsed_program);
