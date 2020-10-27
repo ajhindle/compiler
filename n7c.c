@@ -11,7 +11,7 @@
 #include    <stdlib.h>
 #include    "ast.h"
 #include    "std.h"
-#include    "pretty.h"
+#include    "traverse.h"
 #include    "missing.h"
 #include    "analyser.h"
 #include    "codegen.h"

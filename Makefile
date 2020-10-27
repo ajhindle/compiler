@@ -1,6 +1,6 @@
-HDR =		ast.h std.h missing.h parser.h pretty.h analyser.h codegen.h n7c.h 
+HDR =		ast.h std.h missing.h parser.h traverse.h analyser.h codegen.h n7c.h 
 
-OBJ =		n7c.o parser.o scanner.o pretty.o analyser.c codegen.o
+OBJ =		n7c.o parser.o scanner.o traverse.o analyser.o codegen.o
 
 CC = 		gcc -Wall -g
 
@@ -14,6 +14,6 @@ scanner.c:	scanner.l parser.h std.h ast.h
 		flex -s -oscanner.c scanner.l
 
 clean:
-		/bin/rm $(OBJ) parser.c parser.h parser.output scanner.c
+		/bin/rm $(OBJ) parser.c parser.h parser.output scanner.c 
 
 $(OBJ):		$(HDR)
