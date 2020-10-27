@@ -8,7 +8,7 @@ const int INDENT_START = 0;
 const char *binopname[] = {BINOP_NAMES};
 const char *unopname[] = {UNOP_NAMES};
 
-void proc_procs(FILE *fp, void(*f)(void), Procs procs);
+void proc_procs(FILE *fp, void(*f)(FILE *), Procs procs);
 void proc_header(FILE *fp, Header header);
 void proc_params(FILE *fp, Params params);
 void proc_decls(FILE *fp, Decls decls);
@@ -18,7 +18,7 @@ void proc_statements(FILE *fp, Stmts stmts);
 void proc_statement(FILE *fp, Stmt stmt);
 void proc_expressions(FILE *fp, Exprs exprs);
 void proc_expression(FILE *fp, Expr expr);
-void demo_print();
+void demo_print(FILE *fp);
 
 void
 proc_prog(FILE *fp, Program prog) {
@@ -30,20 +30,20 @@ proc_prog(FILE *fp, Program prog) {
 }
 
 void
-demo_print() {
-    printf("%s ", "... from higher-order:\n"); 
-    printf("%s ", "proc"); 
+demo_print(FILE *fp) {
+    fprintf(fp, "%s ", "... from higher-order:\n"); 
+    fprintf(fp, "%s ", "proc"); 
     return;
 }
 
 void
-proc_procs(FILE *fp, void (*f)(void), Procs procs) {
+proc_procs(FILE *fp, void (*f)(FILE *), Procs procs) {
 
     Proc p_first = procs->p_first;
     Procs p_rest = procs->p_rest;
 
     //fprintf(fp, "%s ", "proc"); 
-    f();
+    f(fp);
     proc_header(fp, p_first->p_header);
 
     if(p_first->p_decls != NULL)
