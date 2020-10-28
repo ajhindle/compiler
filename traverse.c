@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include "ast.h"
+#include "pretty.h"
 
 extern void report_error_and_exit(const char *msg);
 
-const int INDENT = 4;
-const int INDENT_START = 0;
 const char *binopname[] = {BINOP_NAMES};
 const char *unopname[] = {UNOP_NAMES};
 
 void proc_procs(FILE *fp, void(*f)(FILE *), Procs procs);
-void proc_header(FILE *fp, Header header);
+void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
 void proc_params(FILE *fp, Params params);
 void proc_decls(FILE *fp, Decls decls);
 void proc_type(FILE *fp, VType type);
@@ -18,23 +17,16 @@ void proc_statements(FILE *fp, Stmts stmts);
 void proc_statement(FILE *fp, Stmt stmt);
 void proc_expressions(FILE *fp, Exprs exprs);
 void proc_expression(FILE *fp, Expr expr);
-void demo_print(FILE *fp);
+
 
 void
 proc_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-proc"); */
 
-    int indent = INDENT_START;
-    proc_procs(fp, demo_print, prog->procs);
+    proc_procs(fp, print_proc, prog->procs);
 }
 
-void
-demo_print(FILE *fp) {
-    fprintf(fp, "%s ", "... from higher-order:\n"); 
-    fprintf(fp, "%s ", "proc"); 
-    return;
-}
 
 void
 proc_procs(FILE *fp, void (*f)(FILE *), Procs procs) {
@@ -42,9 +34,8 @@ proc_procs(FILE *fp, void (*f)(FILE *), Procs procs) {
     Proc p_first = procs->p_first;
     Procs p_rest = procs->p_rest;
 
-    //fprintf(fp, "%s ", "proc"); 
     f(fp);
-    proc_header(fp, p_first->p_header);
+    proc_header(fp, print_hdr, p_first->p_header);
 
     if(p_first->p_decls != NULL)
         proc_decls(fp, p_first->p_decls);
@@ -57,14 +48,15 @@ proc_procs(FILE *fp, void (*f)(FILE *), Procs procs) {
 }
 
 void 
-proc_header(FILE *fp, Header header) {
+proc_header(FILE *fp, void (*f)(FILE *, Header), Header header) {
 
-    fprintf(fp, "%s(", header->h_id);
+    f(fp, header);
+    // fprintf(fp, "%s(", header->h_id);
    
-    if (header->h_params != NULL) 
-        proc_params(fp, header->h_params);
+    //if (header->h_params != NULL) 
+    //    proc_params(fp, header->h_params);
 
-    fprintf(fp, ")\n");
+    //fprintf(fp, ")\n");
 }
 
 void 

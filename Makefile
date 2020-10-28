@@ -1,6 +1,6 @@
-HDR =		ast.h std.h missing.h parser.h traverse.h analyser.h codegen.h n7c.h 
+HDR =		ast.h std.h missing.h parser.h traverse.h pretty.h analyser.h codegen.h n7c.h 
 
-OBJ =		n7c.o parser.o scanner.o traverse.o analyser.o codegen.o
+OBJ =		n7c.o parser.o scanner.o traverse.o analyser.o codegen.o pretty.o
 
 CC = 		gcc -Wall -g
 
