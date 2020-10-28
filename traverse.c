@@ -7,8 +7,8 @@ extern void report_error_and_exit(const char *msg);
 const char *binopname[] = {BINOP_NAMES};
 const char *unopname[] = {UNOP_NAMES};
 
-void proc_procs(FILE *fp, void(*f)(FILE *), Procs procs);
-void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
+void proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs);
+//void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
 void proc_params(FILE *fp, Params params);
 void proc_decls(FILE *fp, Decls decls);
 void proc_type(FILE *fp, VType type);
@@ -29,16 +29,16 @@ proc_prog(FILE *fp, Program prog) {
 
 
 void
-proc_procs(FILE *fp, void (*f)(FILE *), Procs procs) {
+proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs) {
 
     Proc p_first = procs->p_first;
     Procs p_rest = procs->p_rest;
 
-    f(fp);
-    proc_header(fp, print_hdr, p_first->p_header);
+    f(fp, p_first);
+    //proc_header(fp, print_hdr, p_first->p_header);
 
-    if(p_first->p_decls != NULL)
-        proc_decls(fp, p_first->p_decls);
+    //if(p_first->p_decls != NULL)
+    //    proc_decls(fp, p_first->p_decls);
     
 //    proc_statements(fp, p_first->p_body);
 //    fprintf(fp, "%*s", "\nend\n\n"); 

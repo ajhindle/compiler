@@ -20,9 +20,19 @@ void print_statement(FILE *fp, Stmt stmt);
 void print_expressions(FILE *fp, int ident, Exprs exprs);
 void print_expression(FILE *fp, Expr expr);
 
+void print_hdr(FILE *fp, Header header);
+
 void
-print_proc(FILE *fp) {
+print_proc(FILE *fp, Proc proc) {
     fprintf(fp, "%s ", "proc"); 
+    proc_header(fp, print_hdr, proc->p_header);
+
+    //if(procs->p_first->p_decls != NULL)
+    //    print_decls(fp, procs->p_first->p_decls);
+    
+    //print_statements(fp, indent, procs->p_first->p_body);
+    fprintf(fp, "\nend\n\n"); 
+
     return;
 }
 
