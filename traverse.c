@@ -7,9 +7,9 @@ extern void report_error_and_exit(const char *msg);
 const char *binopname[] = {BINOP_NAMES};
 const char *unopname[] = {UNOP_NAMES};
 
-void proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs);
+//void proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs);
 //void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
-void proc_params(FILE *fp, Params params);
+//void proc_params(FILE *fp, Params params);
 void proc_decls(FILE *fp, Decls decls);
 void proc_type(FILE *fp, VType type);
 void proc_varnames(FILE *fp, VarNames varnames);
@@ -20,11 +20,14 @@ void proc_expression(FILE *fp, Expr expr);
 
 
 void
-proc_prog(FILE *fp, Program prog) {
+proc_prog(FILE *fp, void (*f)(FILE *, Program), Program prog) {
 
     /* report_error_and_exit("Unable to pretty-proc"); */
 
-    proc_procs(fp, print_proc, prog->procs);
+    f(fp, prog);
+    //f(fp, p_first);
+    //proc_procs(fp, f, prog->procs);
+    //proc_procs(fp, print_proc, prog->procs);
 }
 
 
@@ -35,13 +38,6 @@ proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs) {
     Procs p_rest = procs->p_rest;
 
     f(fp, p_first);
-    //proc_header(fp, print_hdr, p_first->p_header);
-
-    //if(p_first->p_decls != NULL)
-    //    proc_decls(fp, p_first->p_decls);
-    
-//    proc_statements(fp, p_first->p_body);
-//    fprintf(fp, "%*s", "\nend\n\n"); 
     
     if(p_rest != NULL)
         proc_procs(fp, *f, p_rest);
@@ -60,27 +56,15 @@ proc_header(FILE *fp, void (*f)(FILE *, Header), Header header) {
 }
 
 void 
-proc_params(FILE *fp, Params params) {
+proc_params(FILE *fp, void (*f)(FILE *, Params), Params params) {
 
-    switch (params->p_first->d_kind) {
-        case VAL:
-            fprintf(fp, "%s ", "val");
-            break;
-        case VALRES:
-            fprintf(fp, "%s ", "valres");
-            break;
-        case REF:
-            fprintf(fp, "%s ", "ref");
-            break;
-    }
+    f(fp, params);
 
-    proc_type(fp, params->p_first->d_type);
-    fprintf(fp, "%s", params->p_first->d_id);
-
-    if (params->p_rest != NULL) {
+ /*   if (params->p_rest != NULL) {
         fprintf(fp, ", ");
         proc_params(fp, params->p_rest);
     }
+    */
 }
 
 void

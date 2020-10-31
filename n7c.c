@@ -13,6 +13,7 @@
 #include    "std.h"
 #include    "traverse.h"
 #include    "missing.h"
+#include    "pretty.h"
 #include    "analyser.h"
 #include    "codegen.h"
 
@@ -66,7 +67,7 @@ main(int argc, char **argv) {
     }
 
     if (pretty_print_only) 
-        proc_prog(fp, parsed_program);
+        proc_prog(fp, pretty_prog, parsed_program);
     else {
         /* report_error_and_exit("Unable to generate code"); */
         analyse_prog(fp, parsed_program);

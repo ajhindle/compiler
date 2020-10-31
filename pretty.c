@@ -38,8 +38,14 @@ print_proc(FILE *fp, Proc proc) {
 
 void
 print_hdr(FILE *fp, Header header) {
+    
     fprintf(fp, "%s(", header->h_id);
+    
+    if (header->h_params != NULL) 
+        proc_params(fp, print_params, header->h_params);
+
     fprintf(fp, ")\n");
+
     return;
 }
 
@@ -49,10 +55,12 @@ pretty_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    int indent = INDENT_START;
-    print_procs(fp, indent, prog->procs);
+    //int indent = INDENT_START;
+    //print_procs(fp, indent, prog->procs);
+    proc_procs(fp, print_proc, prog->procs);
 }
 
+/* DELETE / replace this function */
 void
 print_procs(FILE *fp, int indent, Procs procs) {
 
