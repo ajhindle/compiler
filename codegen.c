@@ -7,7 +7,7 @@
 
 void *checked_malloc(int num_bytes);
 
-void gen_procs(FILE *fp, int indent, Procs procs);
+void gen_procs(FILE *fp, Procs procs);
 void gen_header(FILE *fp, int *curr_reg, Header header);
 void gen_params(FILE *fp, Params params);
 void gen_decls(FILE *fp, int *curr_reg, Decls decls);
@@ -26,12 +26,11 @@ gen_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    int indent = 0;
-    gen_procs(fp, indent, prog->procs);
+    gen_procs(fp, prog->procs);
 }
 
 void
-gen_procs(FILE *fp, int indent, Procs procs) {
+gen_procs(FILE *fp, Procs procs) {
 
     Proc    curr_proc = procs->p_first;
     int     slot_ct = curr_proc->p_param_ct;
@@ -40,18 +39,18 @@ gen_procs(FILE *fp, int indent, Procs procs) {
     /* fprintf(fp, "%s", "proc_");  */
     fprintf(fp, "proc_%s:\n", curr_proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", slot_ct);
-    gen_header(fp, &curr_reg, curr_proc->p_header);
+    //gen_header(fp, &curr_reg, curr_proc->p_header);
 
-    if(procs->p_first->p_decls != NULL)
-        gen_decls(fp, &curr_reg, curr_proc->p_decls);
+    //if(procs->p_first->p_decls != NULL)
+    //    gen_decls(fp, &curr_reg, curr_proc->p_decls);
     
-    gen_statements(fp, &curr_reg, curr_proc->p_body);
+    //gen_statements(fp, &curr_reg, curr_proc->p_body);
     
     fprintf(fp, "    pop_stack_frame %d\n", slot_ct);
     fprintf(fp, "    return\n" );
 
     if(procs->p_rest != NULL)
-        gen_procs(fp, indent, procs->p_rest);
+        gen_procs(fp, procs->p_rest);
 
 }
 

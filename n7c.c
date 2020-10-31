@@ -70,8 +70,10 @@ main(int argc, char **argv) {
         proc_prog(fp, pretty_prog, parsed_program);
     else {
         /* report_error_and_exit("Unable to generate code"); */
-        analyse_prog(fp, parsed_program);
-        gen_prog(fp, parsed_program);
+        //analyse_prog(fp, parsed_program);
+        //gen_prog(fp, parsed_program);
+        //proc_prog(fp, analyse_prog, parsed_program);
+        proc_prog(fp, gen_prog, parsed_program);
     }
 
     return 0;
