@@ -10,9 +10,9 @@ const char *unopname[] = {UNOP_NAMES};
 //void proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs);
 //void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
 //void proc_params(FILE *fp, Params params);
-void proc_decls(FILE *fp, Decls decls);
-void proc_type(FILE *fp, VType type);
-void proc_varnames(FILE *fp, VarNames varnames);
+//void proc_decls(FILE *fp, Decls decls);
+//void proc_type(FILE *fp, VType type);
+//void proc_varnames(FILE *fp, VarNames varnames);
 void proc_statements(FILE *fp, Stmts stmts);
 void proc_statement(FILE *fp, Stmt stmt);
 void proc_expressions(FILE *fp, Exprs exprs);
@@ -68,36 +68,27 @@ proc_params(FILE *fp, void (*f)(FILE *, Params), Params params) {
 }
 
 void
-proc_decls(FILE *fp, Decls decls) {
+proc_decls(FILE *fp, void (*f)(FILE *, Decl), Decls decls) {
 
-    proc_type(fp, decls->d_first->d_type);
-    proc_varnames(fp, decls->d_first->d_varnames);
-    fprintf(fp, ";\n");
+    f(fp, decls->d_first);
+
     if (decls->d_rest != NULL) 
-        proc_decls(fp, decls->d_rest); 
+        proc_decls(fp, f, decls->d_rest); 
 }
 
 void
-proc_varnames(FILE *fp, VarNames varnames) {
+proc_varnames(FILE *fp, void (*f)(FILE *, VarNames), VarNames varnames) {
 
-    fprintf(fp, "%s", varnames->v_first->v_id);
+    f(fp, varnames);
         
-    if (varnames->v_rest != NULL) {
-        fprintf(fp, ", ");
-        proc_varnames(fp, varnames->v_rest);
-    }
+    if (varnames->v_rest != NULL) 
+        proc_varnames(fp, f, varnames->v_rest);
 }
 
 void
-proc_type(FILE *fp, VType type) {
-    switch (type) {
-        case INT:
-            fprintf(fp, "%s ", "int");
-            break;
-        case FLOAT:
-            fprintf(fp, "%s ", "float");
-            break;
-    }
+proc_type(FILE *fp, void (*f)(FILE *, VType), VType type) {
+    
+    f(fp, type);
 }
 
 void
