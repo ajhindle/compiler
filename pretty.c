@@ -15,9 +15,9 @@ void print_params(FILE *fp, Params params);
 void print_decl(FILE *fp, Decl decls);
 void print_type(FILE *fp, VType type);
 void print_varnames(FILE *fp, VarNames varnames);
-void print_statements(FILE *fp, int indent, Stmts stmts);
+void print_statements(FILE *fp, Stmts stmts);
 void print_statement(FILE *fp, Stmt stmt);
-void print_expressions(FILE *fp, int ident, Exprs exprs);
+void print_expressions(FILE *fp, Exprs exprs);
 void print_expression(FILE *fp, Expr expr);
 
 void print_hdr(FILE *fp, Header header);
@@ -30,7 +30,7 @@ print_proc(FILE *fp, Proc proc) {
     if(proc->p_decls != NULL)
         proc_decls(fp, print_decl, proc->p_decls);
     
-    //print_statements(fp, indent, procs->p_first->p_body);
+    proc_statements(fp, print_statements, proc->p_body);
     fprintf(fp, "\nend\n\n"); 
 
     return;
@@ -143,15 +143,15 @@ print_type(FILE *fp, VType type) {
 }
 
 void
-print_statements(FILE *fp, int indent, Stmts stmts) {
+print_statements(FILE *fp, Stmts stmts) {
 
     if (stmts->s_first != NULL) {
-        print_statement(fp, stmts->s_first); 
+        proc_statement(fp, print_statement, stmts->s_first); 
     }
 
     if (stmts->s_rest != NULL) {
         fprintf(fp, ";\n");
-        print_statements(fp, indent, stmts->s_rest); 
+        //proc_statement(fp, print_statement, stmts->s_rest); 
     }
 }
 
@@ -167,7 +167,7 @@ print_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_BLOCK:
             fprintf(fp, "{\n");
-            print_statements(fp, 2, stmt->s_info.s_block);
+            proc_statements(fp, print_statements, stmt->s_info.s_block);
             fprintf(fp, "\n}");
             break;
         case STMT_COND:
@@ -205,20 +205,20 @@ print_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_CALL:
             fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
-            print_expressions(fp, 2, stmt->s_info.s_call.s_exprs);
+            print_expressions(fp, stmt->s_info.s_call.s_exprs);
             fprintf(fp, ")");
             break;
     }
 }
 
 void
-print_expressions(FILE *fp, int indent, Exprs exprs) {
+print_expressions(FILE *fp, Exprs exprs) {
     /* only used in Calls ? */
     print_expression(fp, exprs->e_first);
         
     if (exprs->e_rest != NULL) {
         fprintf(fp, ", ");
-        print_expressions(fp, indent, exprs->e_rest);
+        print_expressions(fp, exprs->e_rest);
     }
 }
 

@@ -13,8 +13,8 @@ const char *unopname[] = {UNOP_NAMES};
 //void proc_decls(FILE *fp, Decls decls);
 //void proc_type(FILE *fp, VType type);
 //void proc_varnames(FILE *fp, VarNames varnames);
-void proc_statements(FILE *fp, Stmts stmts);
-void proc_statement(FILE *fp, Stmt stmt);
+//void proc_statements(FILE *fp, Stmts stmts);
+//void proc_statement(FILE *fp, Stmt stmt);
 void proc_expressions(FILE *fp, Exprs exprs);
 void proc_expression(FILE *fp, Expr expr);
 
@@ -92,72 +92,18 @@ proc_type(FILE *fp, void (*f)(FILE *, VType), VType type) {
 }
 
 void
-proc_statements(FILE *fp, Stmts stmts) {
+proc_statements(FILE *fp, void (*f)(FILE *, Stmts), Stmts stmts) {
 
-    if (stmts->s_first != NULL) {
-        proc_statement(fp, stmts->s_first); 
-    }
+    f(fp, stmts);
 
-    if (stmts->s_rest != NULL) {
-        fprintf(fp, ";\n");
-        proc_statements(fp, stmts->s_rest); 
-    }
+    if (stmts->s_rest != NULL) 
+        proc_statements(fp, f, stmts->s_rest); 
 }
 
 void
-proc_statement(FILE *fp, Stmt stmt) {
+proc_statement(FILE *fp, void (*f)(FILE *, Stmt), Stmt stmt) {
 
-    SKind s_kind = stmt->s_kind;
-
-    switch (s_kind) {
-        case STMT_ASSIGN:
-            fprintf(fp, "%s := ", stmt->s_info.s_assign.asg_id);
-            proc_expression(fp, stmt->s_info.s_assign.asg_expr);
-            break;
-        case STMT_BLOCK:
-            fprintf(fp, "{\n");
-            proc_statements(fp, stmt->s_info.s_block);
-            fprintf(fp, "\n}");
-            break;
-        case STMT_COND:
-            fprintf(fp, "%s ", "if");
-            proc_expression(fp, stmt->s_info.s_cond.if_cond);
-            fprintf(fp, " %s ", "then");
-            proc_statement(fp, stmt->s_info.s_cond.if_then);
-            fprintf(fp, "%s ", "\nelse");
-            proc_statement(fp, stmt->s_info.s_cond.if_else);
-            break;
-        case STMT_READ:
-            fprintf(fp, "%s ", "read");
-            fprintf(fp, "%s", stmt->s_info.s_read);
-            break;
-        case STMT_SKIP:
-            fprintf(fp, "%s", "skip");
-            break;
-        case STMT_WHILE:
-            fprintf(fp, "%s ", "while");
-            proc_expression(fp, stmt->s_info.s_while.while_cond);
-            fprintf(fp, " %s ", "do");
-            proc_statement(fp, stmt->s_info.s_while.while_body);
-            break;
-        case STMT_WRITE:
-            fprintf(fp, "%s ", "write");
-            proc_expression(fp, stmt->s_info.s_write);
-            break;
-        case STMT_FOR:
-            fprintf(fp, "%s ", "for");
-            fprintf(fp, "%s ", stmt->s_info.s_for.for_id);
-            proc_expression(fp, stmt->s_info.s_for.for_from_expr);
-            fprintf(fp, " %s ", "do");
-            proc_expression(fp, stmt->s_info.s_for.for_to_expr);
-            proc_statement(fp, stmt->s_info.s_for.for_body);
-            break;
-        case STMT_CALL:
-            fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
-            proc_expressions(fp, stmt->s_info.s_call.s_exprs);
-            fprintf(fp, ")");
-            break;
-    }
+    f(fp, stmt);
 }
 
 void
