@@ -163,7 +163,7 @@ print_statement(FILE *fp, Stmt stmt) {
     switch (s_kind) {
         case STMT_ASSIGN:
             fprintf(fp, "%s := ", stmt->s_info.s_assign.asg_id);
-            print_expression(fp, stmt->s_info.s_assign.asg_expr);
+            proc_expression(fp, print_expression, stmt->s_info.s_assign.asg_expr);
             break;
         case STMT_BLOCK:
             fprintf(fp, "{\n");
@@ -172,9 +172,9 @@ print_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_COND:
             fprintf(fp, "%s ", "if");
-            print_expression(fp, stmt->s_info.s_cond.if_cond);
+            proc_expression(fp, print_expression, stmt->s_info.s_cond.if_cond);
             fprintf(fp, " %s ", "then");
-            print_statement(fp, stmt->s_info.s_cond.if_then);
+            proc_statement(fp, print_statement, stmt->s_info.s_cond.if_then);
             fprintf(fp, "%s ", "\nelse");
             proc_statement(fp, print_statement, stmt->s_info.s_cond.if_else);
             break;
@@ -187,20 +187,20 @@ print_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_WHILE:
             fprintf(fp, "%s ", "while");
-            print_expression(fp, stmt->s_info.s_while.while_cond);
+            proc_expression(fp, print_expression, stmt->s_info.s_while.while_cond);
             fprintf(fp, " %s ", "do");
             proc_statement(fp, print_statement, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
             fprintf(fp, "%s ", "write");
-            print_expression(fp, stmt->s_info.s_write);
+            proc_expression(fp, print_expression, stmt->s_info.s_write);
             break;
         case STMT_FOR:
             fprintf(fp, "%s ", "for");
             fprintf(fp, "%s ", stmt->s_info.s_for.for_id);
-            print_expression(fp, stmt->s_info.s_for.for_from_expr);
+            proc_expression(fp, print_expression, stmt->s_info.s_for.for_from_expr);
             fprintf(fp, " %s ", "do");
-            print_expression(fp, stmt->s_info.s_for.for_to_expr);
+            proc_expression(fp, print_expression, stmt->s_info.s_for.for_to_expr);
             proc_statement(fp, print_statement, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
@@ -244,21 +244,21 @@ print_expression(FILE *fp, Expr expr) {
                     expr->e2->e_kind != EXPR_UNOP ) 
             {
                 fprintf(fp, "%s", "(");
-                print_expression(fp, expr->e1);
+                proc_expression(fp, print_expression, expr->e1);
                 fprintf(fp, " %s ", binopname[expr->e_binop]);
-                print_expression(fp, expr->e2);
+                proc_expression(fp, print_expression, expr->e2);
                 fprintf(fp, "%s", ")");
             }
             else {
-                print_expression(fp, expr->e1);
+                proc_expression(fp, print_expression, expr->e1);
                 fprintf(fp, " %s ", binopname[expr->e_binop]);
-                print_expression(fp, expr->e2);
+                proc_expression(fp, print_expression, expr->e2);
             }
 
             break;
         case EXPR_UNOP:
             fprintf(fp, " %s", unopname[expr->e_unop]);
-            print_expression(fp, expr->e1);
+            proc_expression(fp, print_expression, expr->e1);
             break;
         default: 
             fprintf(fp, "%s ", "UNKNOWN");

@@ -13,3 +13,4 @@ void proc_type(FILE *fp, void (*f)(FILE *, VType), VType type);
 void proc_statements(FILE *fp, void (*f)(FILE *, Stmts), Stmts stmts);
 void proc_statement(FILE *fp, void (*f)(FILE *, Stmt), Stmt stmt); 
 void proc_expressions(FILE *fp, void (*f)(FILE *, Exprs), Exprs exprs);
+void proc_expression(FILE *fp, void (*f)(FILE *, Expr), Expr expr);

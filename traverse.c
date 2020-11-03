@@ -4,19 +4,6 @@
 
 extern void report_error_and_exit(const char *msg);
 
-//const char *binopname[] = {BINOP_NAMES};
-//const char *unopname[] = {UNOP_NAMES};
-
-//void proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs);
-//void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
-//void proc_params(FILE *fp, Params params);
-//void proc_decls(FILE *fp, Decls decls);
-//void proc_type(FILE *fp, VType type);
-//void proc_varnames(FILE *fp, VarNames varnames);
-//void proc_statements(FILE *fp, Stmts stmts);
-//void proc_statement(FILE *fp, Stmt stmt);
-//void proc_expressions(FILE *fp, Exprs exprs);
-void proc_expression(FILE *fp, Expr expr);
 
 
 void
@@ -44,12 +31,6 @@ void
 proc_header(FILE *fp, void (*f)(FILE *, Header), Header header) {
 
     f(fp, header);
-    // fprintf(fp, "%s(", header->h_id);
-   
-    //if (header->h_params != NULL) 
-    //    proc_params(fp, header->h_params);
-
-    //fprintf(fp, ")\n");
 }
 
 void 
@@ -108,46 +89,9 @@ proc_expressions(FILE *fp, void (*f)(FILE *, Exprs), Exprs exprs) {
 }
 
 void
-proc_expression(FILE *fp, Expr expr) {
+proc_expression(FILE *fp, void (*f)(FILE *, Expr), Expr expr) {
 
-    EKind e_kind = expr->e_kind;
+    f(fp, expr);
 
-    switch (e_kind) {
-        case EXPR_ID:
-            fprintf(fp, "%s", expr->e_id);
-            break;
-        case EXPR_INTCONST:
-            fprintf(fp, "%d", expr->e_intval);
-            break;
-        case EXPR_FLTCONST:
-            fprintf(fp, "%.2f", expr->e_fltval);
-            break;
-        case EXPR_BINOP:
-            if (expr->e1->e_kind != EXPR_BINOP && 
-                    expr->e1->e_kind != EXPR_UNOP && 
-                    expr->e2->e_kind != EXPR_BINOP && 
-                    expr->e2->e_kind != EXPR_UNOP ) 
-            {
-                fprintf(fp, "%s", "(");
-                proc_expression(fp, expr->e1);
-                fprintf(fp, " %s ", binopname[expr->e_binop]);
-                proc_expression(fp, expr->e2);
-                fprintf(fp, "%s", ")");
-            }
-            else {
-                proc_expression(fp, expr->e1);
-                fprintf(fp, " %s ", binopname[expr->e_binop]);
-                proc_expression(fp, expr->e2);
-            }
-
-            break;
-        case EXPR_UNOP:
-            fprintf(fp, " %s", unopname[expr->e_unop]);
-            proc_expression(fp, expr->e1);
-            break;
-        default: 
-            fprintf(fp, "%s ", "UNKNOWN");
-            break;
-    }
 }
 
