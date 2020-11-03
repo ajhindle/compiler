@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "ast.h"
+#include "traverse.h"
 
 /* #extern void report_error_and_exit(const char *msg); */
 
@@ -7,8 +8,8 @@
 
 void *checked_malloc(int num_bytes);
 
-void gen_procs(FILE *fp, Procs procs);
-void gen_header(FILE *fp, int *curr_reg, Header header);
+void gen_proc(FILE *fp, Proc proc);
+void gen_header(FILE *fp, Header header);
 void gen_params(FILE *fp, Params params);
 void gen_decls(FILE *fp, int *curr_reg, Decls decls);
 void gen_type(FILE *fp, VType type);
@@ -21,25 +22,27 @@ void print_instruction(FILE *fp, Instr instr);
 char *gen_nextreg(int *curr_reg); 
 void gen_binop(FILE *fp, int *curr_reg, Expr expr); 
 
+int curr_reg;
+
 void
 gen_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    gen_procs(fp, prog->procs);
+    proc_procs(fp, gen_proc, prog->procs);
 }
 
 void
-gen_procs(FILE *fp, Procs procs) {
+gen_proc(FILE *fp, Proc proc) {
 
-    Proc    curr_proc = procs->p_first;
-    int     slot_ct = curr_proc->p_param_ct;
-    int     curr_reg = 0;
+    int     slot_ct = proc->p_param_ct;
+    
+    curr_reg = 0;
 
     /* fprintf(fp, "%s", "proc_");  */
-    fprintf(fp, "proc_%s:\n", curr_proc->p_header->h_id);
+    fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", slot_ct);
-    //gen_header(fp, &curr_reg, curr_proc->p_header);
+    proc_header(fp, gen_header, proc->p_header);
 
     //if(procs->p_first->p_decls != NULL)
     //    gen_decls(fp, &curr_reg, curr_proc->p_decls);
@@ -49,13 +52,10 @@ gen_procs(FILE *fp, Procs procs) {
     fprintf(fp, "    pop_stack_frame %d\n", slot_ct);
     fprintf(fp, "    return\n" );
 
-    if(procs->p_rest != NULL)
-        gen_procs(fp, procs->p_rest);
-
 }
 
 void 
-gen_header(FILE *fp, int *curr_reg, Header header) {
+gen_header(FILE *fp, Header header) {
 
     if (header->h_params != NULL) 
         gen_params(fp, header->h_params);
@@ -63,28 +63,13 @@ gen_header(FILE *fp, int *curr_reg, Header header) {
 
 void 
 gen_params(FILE *fp, Params params) {
-/*
-    switch (params->p_first->d_kind) {
-        case VAL:
-            fprintf(fp, "%s ", "val");
-            break;
-        case VALRES:
-            fprintf(fp, "%s ", "valres");
-            break;
-        case REF:
-            fprintf(fp, "%s ", "ref");
-            break;
-    }
 
-    gen_type(fp, params->p_first->d_type);
-*/
     fprintf(fp, "# argument %s is in stack slot X\n", 
             params->p_first->d_id);
 
-    if (params->p_rest != NULL) {
-        /* fprintf(fp, ", "); */
+    if (params->p_rest != NULL) 
         gen_params(fp, params->p_rest);
-    }
+    
 }
 
 void
