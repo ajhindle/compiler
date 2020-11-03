@@ -4,8 +4,8 @@
 
 extern void report_error_and_exit(const char *msg);
 
-const char *binopname[] = {BINOP_NAMES};
-const char *unopname[] = {UNOP_NAMES};
+//const char *binopname[] = {BINOP_NAMES};
+//const char *unopname[] = {UNOP_NAMES};
 
 //void proc_procs(FILE *fp, void (*f)(FILE *, Proc), Procs procs);
 //void proc_header(FILE *fp, void (*f)(FILE *, Header), Header header);
@@ -15,7 +15,7 @@ const char *unopname[] = {UNOP_NAMES};
 //void proc_varnames(FILE *fp, VarNames varnames);
 //void proc_statements(FILE *fp, Stmts stmts);
 //void proc_statement(FILE *fp, Stmt stmt);
-void proc_expressions(FILE *fp, Exprs exprs);
+//void proc_expressions(FILE *fp, Exprs exprs);
 void proc_expression(FILE *fp, Expr expr);
 
 
@@ -25,9 +25,6 @@ proc_prog(FILE *fp, void (*f)(FILE *, Program), Program prog) {
     /* report_error_and_exit("Unable to pretty-proc"); */
 
     f(fp, prog);
-    //f(fp, p_first);
-    //proc_procs(fp, f, prog->procs);
-    //proc_procs(fp, print_proc, prog->procs);
 }
 
 
@@ -59,12 +56,6 @@ void
 proc_params(FILE *fp, void (*f)(FILE *, Params), Params params) {
 
     f(fp, params);
-
- /*   if (params->p_rest != NULL) {
-        fprintf(fp, ", ");
-        proc_params(fp, params->p_rest);
-    }
-    */
 }
 
 void
@@ -107,13 +98,12 @@ proc_statement(FILE *fp, void (*f)(FILE *, Stmt), Stmt stmt) {
 }
 
 void
-proc_expressions(FILE *fp, Exprs exprs) {
+proc_expressions(FILE *fp, void (*f)(FILE *, Exprs), Exprs exprs) {
     /* only used in Calls ? */
-    proc_expression(fp, exprs->e_first);
+    f(fp, exprs);
         
     if (exprs->e_rest != NULL) {
-        fprintf(fp, ", ");
-        proc_expressions(fp, exprs->e_rest);
+        proc_expressions(fp, f, exprs->e_rest);
     }
 }
 

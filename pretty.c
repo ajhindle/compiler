@@ -6,8 +6,8 @@ extern void report_error_and_exit(const char *msg);
 
 const int INDENT = 4;
 const int INDENT_START = 0;
-//const char *binopname[] = {BINOP_NAMES};
-//const char *unopname[] = {UNOP_NAMES};
+const char *binopname[] = {BINOP_NAMES};
+const char *unopname[] = {UNOP_NAMES};
 
 void print_procs(FILE *fp, int indent, Procs procs);
 void print_header(FILE *fp, int indent, Header heaccder);
@@ -176,7 +176,7 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, " %s ", "then");
             print_statement(fp, stmt->s_info.s_cond.if_then);
             fprintf(fp, "%s ", "\nelse");
-            print_statement(fp, stmt->s_info.s_cond.if_else);
+            proc_statement(fp, print_statement, stmt->s_info.s_cond.if_else);
             break;
         case STMT_READ:
             fprintf(fp, "%s ", "read");
@@ -189,7 +189,7 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, "%s ", "while");
             print_expression(fp, stmt->s_info.s_while.while_cond);
             fprintf(fp, " %s ", "do");
-            print_statement(fp, stmt->s_info.s_while.while_body);
+            proc_statement(fp, print_statement, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
             fprintf(fp, "%s ", "write");
@@ -201,11 +201,11 @@ print_statement(FILE *fp, Stmt stmt) {
             print_expression(fp, stmt->s_info.s_for.for_from_expr);
             fprintf(fp, " %s ", "do");
             print_expression(fp, stmt->s_info.s_for.for_to_expr);
-            print_statement(fp, stmt->s_info.s_for.for_body);
+            proc_statement(fp, print_statement, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
             fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
-            print_expressions(fp, stmt->s_info.s_call.s_exprs);
+            proc_expressions(fp, print_expressions, stmt->s_info.s_call.s_exprs);
             fprintf(fp, ")");
             break;
     }
@@ -245,13 +245,13 @@ print_expression(FILE *fp, Expr expr) {
             {
                 fprintf(fp, "%s", "(");
                 print_expression(fp, expr->e1);
-                //fprintf(fp, " %s ", binopname[expr->e_binop]);
+                fprintf(fp, " %s ", binopname[expr->e_binop]);
                 print_expression(fp, expr->e2);
                 fprintf(fp, "%s", ")");
             }
             else {
                 print_expression(fp, expr->e1);
-                //fprintf(fp, " %s ", binopname[expr->e_binop]);
+                fprintf(fp, " %s ", binopname[expr->e_binop]);
                 print_expression(fp, expr->e2);
             }
 
