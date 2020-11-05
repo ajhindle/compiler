@@ -139,6 +139,7 @@ struct s_param {
 	PKind	d_kind;
 	VType	d_type;
 	char    *d_id;
+    Instr   p_code;
 };
 
 struct s_params {
