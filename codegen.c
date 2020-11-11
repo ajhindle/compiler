@@ -14,10 +14,10 @@ void gen_params(FILE *fp, Params params);
 void gen_decl(FILE *fp, Decl decl);
 void gen_type(FILE *fp, VType type);
 void gen_varnames(FILE *fp, VarNames varnames);
-void gen_statements(FILE *fp, int *curr_reg, Stmts stmts);
-void gen_statement(FILE *fp, int *curr_reg, Stmt stmt);
-void gen_expressions(FILE *fp, int *curr_reg, Exprs exprs);
-void gen_expression(FILE *fp, int *curr_reg, Expr expr);
+void gen_statements(FILE *fp, Stmts stmts);
+void gen_statement(FILE *fp, Stmt stmt);
+void gen_expressions(FILE *fp, Exprs exprs);
+void gen_expression(FILE *fp, Expr expr);
 void print_instruction(FILE *fp, Instr instr);
 char *gen_nextreg(void); 
 char *gen_nextslot(void); 
@@ -37,7 +37,7 @@ gen_prog(FILE *fp, Program prog) {
 void
 gen_proc(FILE *fp, Proc proc) {
 
-    int     slot_ct = proc->p_param_ct;
+    int     slot_ct = proc->p_param_ct + proc->p_var_ct;
     
     curr_reg = 0;
     curr_slot = 0;
@@ -50,7 +50,7 @@ gen_proc(FILE *fp, Proc proc) {
     if(proc->p_decls != NULL)
         proc_decls(fp, gen_decl, proc->p_decls);
     
-    //gen_statements(fp, &curr_reg, curr_proc->p_body);
+    proc_statements(fp, gen_statements, proc->p_body);
     
     fprintf(fp, "    pop_stack_frame %d\n", slot_ct);
     fprintf(fp, "    return\n" );
@@ -61,7 +61,7 @@ void
 gen_header(FILE *fp, Header header) {
 
     if (header->h_params != NULL) 
-        gen_params(fp, header->h_params);
+        proc_params(fp, gen_params, header->h_params);
 }
 
 void 
@@ -74,8 +74,10 @@ gen_params(FILE *fp, Params params) {
     fprintf(fp, "# argument %s is in stack slot %s\n", 
             params->p_first->d_id, params->p_first->p_code->arg1);
 
+    print_instruction(fp, params->p_first->p_code);
+
     if (params->p_rest != NULL) 
-        gen_params(fp, params->p_rest);
+        proc_params(fp, gen_params, params->p_rest);
     
 }
 
@@ -83,7 +85,7 @@ void
 gen_decl(FILE *fp, Decl decl) {
 
     /* gen_type(fp, decls->d_first->d_type);*/
-    gen_varnames(fp, decl->d_varnames);
+    proc_varnames(fp, gen_varnames, decl->d_varnames);
 
     //if (decls->d_rest != NULL) 
     //    proc_decls(fp, gen_decls, decls->d_rest); 
@@ -121,17 +123,17 @@ gen_type(FILE *fp, VType type) {
 }
 
 void
-gen_statements(FILE *fp, int *curr_reg, Stmts stmts) {
+gen_statements(FILE *fp, Stmts stmts) {
 
     /* fprintf(fp, "curr_reg address: %p\ncurr_reg value: %d\n", curr_reg, 
      * *curr_reg); */
 
     if (stmts->s_first != NULL) {
-        gen_statement(fp, curr_reg, stmts->s_first); 
+        proc_statement(fp, gen_statement, stmts->s_first); 
     }
 
     if (stmts->s_rest != NULL) {
-        gen_statements(fp, curr_reg, stmts->s_rest); 
+        proc_statements(fp, gen_statements, stmts->s_rest); 
     }
 }
 
@@ -169,7 +171,7 @@ char
 }
 
 void
-gen_statement(FILE *fp, int *curr_reg, Stmt stmt) {
+gen_statement(FILE *fp, Stmt stmt) {
 
     /* fprintf(fp, "curr_reg address: %p\ncurr_reg value: %d\n", curr_reg, 
     * *curr_reg); */
@@ -180,26 +182,27 @@ gen_statement(FILE *fp, int *curr_reg, Stmt stmt) {
         case STMT_ASSIGN:
             /* fprintf(fp, "%s := ", stmt->s_info.s_assign.asg_id); */
             fprintf(fp, "# assignment\n"); 
-            gen_expression(fp, curr_reg, stmt->s_info.s_assign.asg_expr); 
+            gen_expression(fp, stmt->s_info.s_assign.asg_expr); 
+            // TODO get the "place" (reg) of the expression
             stmt->s_code = checked_malloc(sizeof(struct s_instr));
             stmt->s_code->op = STORE;
-            stmt->s_code->arg1 = "1";
-            stmt->s_code->arg2 = gen_nextreg();
+            stmt->s_code->arg1 = stmt->s_info.s_assign.asg_expr->e_place;
+            stmt->s_code->arg2 = stmt->s_info.s_assign.stack_slot;
             print_instruction(fp, stmt->s_code);
             /* fprintf(fp, "next reg: r%d\n", *curr_reg); */
             break;
         case STMT_BLOCK:
             /* fprintf(fp, "{\n"); */
-            gen_statements(fp, curr_reg, stmt->s_info.s_block);
+            gen_statements(fp, stmt->s_info.s_block);
             /* fprintf(fp, "\n}"); */
             break;
         case STMT_COND:
             fprintf(fp, "%s ", "if");
-            gen_expression(fp, curr_reg, stmt->s_info.s_cond.if_cond);
+            gen_expression(fp, stmt->s_info.s_cond.if_cond);
             fprintf(fp, " %s ", "then");
-            gen_statement(fp, curr_reg, stmt->s_info.s_cond.if_then);
+            gen_statement(fp, stmt->s_info.s_cond.if_then);
             fprintf(fp, "%s ", "\nelse");
-            gen_statement(fp, curr_reg, stmt->s_info.s_cond.if_else);
+            gen_statement(fp, stmt->s_info.s_cond.if_else);
             break;
         case STMT_READ:
             fprintf(fp, "%s ", "read");
@@ -210,43 +213,43 @@ gen_statement(FILE *fp, int *curr_reg, Stmt stmt) {
             break;
         case STMT_WHILE:
             fprintf(fp, "%s ", "while");
-            gen_expression(fp, curr_reg, stmt->s_info.s_while.while_cond);
+            gen_expression(fp, stmt->s_info.s_while.while_cond);
             fprintf(fp, " %s ", "do");
-            gen_statement(fp, curr_reg, stmt->s_info.s_while.while_body);
+            gen_statement(fp, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
             fprintf(fp, "%s ", "write");
-            gen_expression(fp, curr_reg, stmt->s_info.s_write);
+            gen_expression(fp, stmt->s_info.s_write);
             break;
         case STMT_FOR:
             fprintf(fp, "%s ", "for");
             fprintf(fp, "%s ", stmt->s_info.s_for.for_id);
-            gen_expression(fp, curr_reg, stmt->s_info.s_for.for_from_expr);
+            gen_expression(fp, stmt->s_info.s_for.for_from_expr);
             fprintf(fp, " %s ", "do");
-            gen_expression(fp, curr_reg, stmt->s_info.s_for.for_to_expr);
-            gen_statement(fp, curr_reg, stmt->s_info.s_for.for_body);
+            gen_expression(fp, stmt->s_info.s_for.for_to_expr);
+            gen_statement(fp, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
             fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
-            gen_expressions(fp, curr_reg, stmt->s_info.s_call.s_exprs);
+            gen_expressions(fp, stmt->s_info.s_call.s_exprs);
             fprintf(fp, ")");
             break;
     }
 }
 
 void
-gen_expressions(FILE *fp, int *curr_reg, Exprs exprs) {
+gen_expressions(FILE *fp, Exprs exprs) {
     /* only used in Calls ? */
-    gen_expression(fp, curr_reg, exprs->e_first);
+    gen_expression(fp, exprs->e_first);
         
     if (exprs->e_rest != NULL) {
         fprintf(fp, ", ");
-        gen_expressions(fp, curr_reg, exprs->e_rest);
+        gen_expressions(fp, exprs->e_rest);
     }
 }
 
 void
-gen_expression(FILE *fp, int *curr_reg, Expr expr) {
+gen_expression(FILE *fp, Expr expr) {
 
     char    *val = checked_malloc(sizeof(char[5]));
     EKind e_kind = expr->e_kind;
@@ -258,7 +261,7 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
             expr->e_place = gen_nextreg();
             expr->e_code->op = LOAD;
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2 = "slot#";
+            expr->e_code->arg2 = gen_nextslot();;
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_INTCONST:
@@ -282,9 +285,9 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:
-            gen_expression(fp, curr_reg, expr->e1);
+            gen_expression(fp, expr->e1);
             /* fprintf(fp, " %s ", binopname[expr->e_binop]);*/
-            gen_expression(fp, curr_reg, expr->e2);
+            gen_expression(fp, expr->e2);
             expr->e_code = checked_malloc(sizeof(struct s_instr));
             //expr->e_code->op = codegen_binop[expr->e_type][expr->e_binop];
             expr->e_code->op = MUL_INT;
@@ -295,7 +298,7 @@ gen_expression(FILE *fp, int *curr_reg, Expr expr) {
             break;
         case EXPR_UNOP:
             fprintf(fp, " %s", unopname[expr->e_unop]);
-            gen_expression(fp, curr_reg, expr->e1);
+            gen_expression(fp, expr->e1);
             break;
     }
 }

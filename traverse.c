@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include "ast.h"
-#include "pretty.h"
 
 extern void report_error_and_exit(const char *msg);
-
-
 
 void
 proc_prog(FILE *fp, void (*f)(FILE *, Program), Program prog) {

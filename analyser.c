@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include "ast.h"
+#include "traverse.h"
 
 extern void report_error_and_exit(const char *msg);
 
 
-void analyse_procs(FILE *fp, Procs procs);
-void analyse_header(FILE *fp, int *param_ct, Header header);
-void analyse_params(FILE *fp, int *param_ct, Params params);
+void analyse_proc(FILE *fp, Proc proc);
+void analyse_header(FILE *fp, Header header);
+void analyse_params(FILE *fp, Params params);
 void analyse_decls(FILE *fp, Decls decls);
 void analyse_type(FILE *fp, VType type);
 void analyse_varnames(FILE *fp, VarNames varnames);
@@ -15,47 +16,47 @@ void analyse_statement(FILE *fp, Stmt stmt);
 void analyse_expressions(FILE *fp, Exprs exprs);
 void analyse_expression(FILE *fp, Expr expr);
 
+int param_ct;
+int var_ct;
 
 void
 analyse_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    analyse_procs(fp, prog->procs);
+    proc_procs(fp, analyse_proc, prog->procs);
 }
 
 void
-analyse_procs(FILE *fp, Procs procs) {
+analyse_proc(FILE *fp, Proc proc) {
 
-    Proc    curr_proc = procs->p_first;
-    int     param_ct = 0;
+    param_ct = 0;
+    var_ct = 0;
 
-    //procs->p_first->p_var_ct = 0;
-
-    analyse_header(fp, &param_ct, curr_proc->p_header);
+    proc_header(fp, analyse_header, proc->p_header);
     
-    curr_proc->p_param_ct = param_ct;
+    proc->p_param_ct = param_ct;
+    proc->p_var_ct = var_ct;
 
-    if(procs->p_first->p_decls != NULL)
-        analyse_decls(fp, curr_proc->p_decls);
+    if(proc->p_decls != NULL) {
+        analyse_decls(fp, proc->p_decls);
+        proc->p_var_ct = var_ct;
+    }
     
-    analyse_statements(fp, curr_proc->p_body);
-
-    if(procs->p_rest != NULL)
-        analyse_procs(fp, procs->p_rest);
+    analyse_statements(fp, proc->p_body);
 }
 
 void 
-analyse_header(FILE *fp, int *param_ct, Header header) {
+analyse_header(FILE *fp, Header header) {
    
     if (header->h_params != NULL) 
-        analyse_params(fp, param_ct, header->h_params);
+        analyse_params(fp, header->h_params);
 }
 
 void 
-analyse_params(FILE *fp, int *param_ct, Params params) {
+analyse_params(FILE *fp, Params params) {
 
-    *param_ct = *param_ct + 1;
+    param_ct = param_ct + 1;
 
     switch (params->p_first->d_kind) {
         case VAL:
@@ -69,13 +70,14 @@ analyse_params(FILE *fp, int *param_ct, Params params) {
     analyse_type(fp, params->p_first->d_type);
 
     if (params->p_rest != NULL) {
-        analyse_params(fp, param_ct, params->p_rest);
+        analyse_params(fp, params->p_rest);
     }
 }
 
 void
 analyse_decls(FILE *fp, Decls decls) {
 
+    var_ct = var_ct + 1;
     analyse_type(fp, decls->d_first->d_type);
     analyse_varnames(fp, decls->d_first->d_varnames);
     if (decls->d_rest != NULL) 
@@ -85,7 +87,6 @@ analyse_decls(FILE *fp, Decls decls) {
 void
 analyse_varnames(FILE *fp, VarNames varnames) {
 
-        
     if (varnames->v_rest != NULL) {
         analyse_varnames(fp, varnames->v_rest);
     }

@@ -1,5 +1,6 @@
 *.swp
 *.k
+*.t
 *.o
 *.output
 parser.c 

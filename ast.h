@@ -181,6 +181,7 @@ struct s_exprs {
 typedef struct {
     char    *asg_id;
     Expr    asg_expr;
+    int     stack_slot;
 } Assign;
 
 typedef struct {
