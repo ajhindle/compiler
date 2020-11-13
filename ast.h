@@ -25,6 +25,7 @@ typedef	struct s_procs		*Procs;
 typedef struct s_prog   	*Program;
 
 typedef	struct s_instr		*Instr;
+typedef	struct s_place		*Place;
 
 typedef enum {
     BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, 
@@ -75,6 +76,10 @@ typedef enum {
 	INT, FLOAT
 } VType;
 
+typedef enum {
+	REG, SLOT
+} PType;
+
 struct s_expr {
     int     e_lineno;
     EKind   e_kind;
@@ -86,7 +91,7 @@ struct s_expr {
     Expr    e1;         /* for UNOP and BINOP */
     Expr    e2;         /* for BINOP */
     Instr   e_code;     /* code generation instruction */
-    char    *e_place;   /* code generation place (register) */
+    Place   e_place;    /* code generation place (register) */
     VType   e_type;     /* expression type */
 };
 
@@ -127,12 +132,15 @@ extern const char *instr_opnames[];
 
 struct s_instr {
     Op      op;
-    char    *arg1;
-    char    *arg2;
-    char    *arg3;
+    Place   arg1;   /* TODO change the type name to Arg */
+    Place   arg2;
+    Place   arg3;
 };
 
-
+struct s_place {
+    PType   p_type;
+    int     p_index;    /* change the variable name to a_val */
+};
 
 struct s_param {
 	int		d_lineno;
@@ -181,7 +189,7 @@ struct s_exprs {
 typedef struct {
     char    *asg_id;
     Expr    asg_expr;
-    int     stack_slot;
+    Place   stack_slot;
 } Assign;
 
 typedef struct {
