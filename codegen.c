@@ -19,8 +19,8 @@ void gen_statement(FILE *fp, Stmt stmt);
 void gen_expressions(FILE *fp, Exprs exprs);
 void gen_expression(FILE *fp, Expr expr);
 void print_instruction(FILE *fp, Instr instr);
-void print_instr_arg(FILE *fp, Place arg); 
-void get_nextplace(Place arg, PType p_type);
+void print_instr_arg(FILE *fp, Arg arg); 
+void get_nextplace(Arg arg, AType a_type);
 void gen_binop(FILE *fp, Expr expr); 
 
 int curr_reg;
@@ -67,18 +67,13 @@ gen_header(FILE *fp, Header header) {
 void 
 gen_params(FILE *fp, Params params) {
 
-    //Instr p_code = params->p_first->p_code;
-    //params->p_first->p_code = checked_malloc(sizeof(struct s_instr));
-    Instr p_code = checked_malloc(sizeof(struct s_instr));
+    Instr p_code = params->p_first->p_code;
 
-    params->p_first->p_code = p_code;
     p_code->op = STORE;
-    p_code->arg1 = checked_malloc(sizeof(struct s_place));
-    p_code->arg2 = checked_malloc(sizeof(struct s_place));
     get_nextplace(p_code->arg1, SLOT);
     get_nextplace(p_code->arg2, REG);
     fprintf(fp, "# argument %s is in stack slot %d\n", 
-            params->p_first->d_id, p_code->arg1->p_index);
+            params->p_first->d_id, p_code->arg1->a_val);
 
     print_instruction(fp, p_code);
 
@@ -100,20 +95,14 @@ gen_decl(FILE *fp, Decl decl) {
 void
 gen_varnames(FILE *fp, VarNames varnames) {
 
-    //varnames->v_first->v_code = checked_malloc(sizeof(struct s_instr));
     Instr v_code = varnames->v_first->v_code;
     
     v_code->op = STORE;
-    v_code->arg1 = checked_malloc(sizeof(struct s_place));
-    v_code->arg2 = checked_malloc(sizeof(struct s_place));
     get_nextplace(v_code->arg1, SLOT);
     get_nextplace(v_code->arg2, REG);
 
-    //fprintf(fp, "# variable %s is in stack slot %s\n", 
-    //        varnames->v_first->v_id, varnames->v_first->v_code->arg1);
-
     fprintf(fp, "# argument %s is in stack slot %d\n", 
-            varnames->v_first->v_id, v_code->arg1->p_index);
+            varnames->v_first->v_id, v_code->arg1->a_val);
 
     print_instruction(fp, varnames->v_first->v_code);
 
@@ -163,29 +152,29 @@ print_instruction(FILE *fp, Instr instr) {
 }
 
 void
-print_instr_arg(FILE *fp, Place arg) {
-    switch (arg->p_type) {
+print_instr_arg(FILE *fp, Arg arg) {
+    switch (arg->a_type) {
         case REG:
-            fprintf(fp, "r%d ", arg->p_index);
+            fprintf(fp, "r%d ", arg->a_val);
             break;
         case SLOT:
-            fprintf(fp, "%d ", arg->p_index);
+            fprintf(fp, "%d ", arg->a_val);
             break;
     }
 }
 
 void
-get_nextplace(Place arg, PType p_type) {
+get_nextplace(Arg arg, AType a_type) {
 
-    switch (p_type) {
+    switch (a_type) {
         case REG:
-            arg->p_index = curr_reg;
-            arg->p_type = REG;
+            arg->a_val = curr_reg;
+            arg->a_type = REG;
             curr_reg = curr_reg + 1;
             break;
         case SLOT:
-            arg->p_index = curr_slot;
-            arg->p_type = SLOT;
+            arg->a_val = curr_slot;
+            arg->a_type = SLOT;
             curr_slot = curr_slot + 1;
             break;
     }
@@ -194,17 +183,11 @@ get_nextplace(Place arg, PType p_type) {
 void
 gen_statement(FILE *fp, Stmt stmt) {
 
-    /* fprintf(fp, "curr_reg address: %p\ncurr_reg value: %d\n", curr_reg, 
-    * *curr_reg); */
 
     SKind s_kind = stmt->s_kind;
 
     switch (s_kind) {
         case STMT_ASSIGN:
-            /* fprintf(fp, "%s := ", stmt->s_info.s_assign.asg_id); */
-            stmt->s_code = checked_malloc(sizeof(struct s_instr));
-            stmt->s_code->arg1 = checked_malloc(sizeof(struct s_place));
-            stmt->s_code->arg2 = checked_malloc(sizeof(struct s_place));
             fprintf(fp, "# assignment\n"); 
             gen_expression(fp, stmt->s_info.s_assign.asg_expr); 
             // TODO get the "place" (reg) of the expression
@@ -277,10 +260,10 @@ gen_expression(FILE *fp, Expr expr) {
     EKind e_kind = expr->e_kind;
 
     expr->e_code = checked_malloc(sizeof(struct s_instr));
-    expr->e_code->arg1 = checked_malloc(sizeof(struct s_place));
-    expr->e_code->arg2 = checked_malloc(sizeof(struct s_place));
+    expr->e_code->arg1 = checked_malloc(sizeof(struct s_arg));
+    expr->e_code->arg2 = checked_malloc(sizeof(struct s_arg));
 
-    expr->e_place = checked_malloc(sizeof(struct s_place));
+    expr->e_place = checked_malloc(sizeof(struct s_arg));
 
     switch (e_kind) {
         case EXPR_ID:
@@ -305,7 +288,7 @@ gen_expression(FILE *fp, Expr expr) {
             get_nextplace(expr->e_place, REG);
             expr->e_code->op = INT_CONST;
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2->p_index = expr->e_intval; //TODO fix AST 
+            expr->e_code->arg2->a_val = expr->e_intval; //TODO fix AST 
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_FLTCONST:
@@ -316,11 +299,11 @@ gen_expression(FILE *fp, Expr expr) {
             get_nextplace(expr->e_place, REG);
             expr->e_code->op = REAL_CONST;
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2->p_index = expr->e_fltval;
+            expr->e_code->arg2->a_val = expr->e_fltval;
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:
-    expr->e_code->arg3 = checked_malloc(sizeof(struct s_place));
+    expr->e_code->arg3 = checked_malloc(sizeof(struct s_arg));
             gen_expression(fp, expr->e1);
             /* fprintf(fp, " %s ", binopname[expr->e_binop]);*/
             gen_expression(fp, expr->e2);
@@ -352,7 +335,7 @@ gen_binop(FILE *fp, Expr expr) {
             expr->e_code->op = MUL_INT;
             //expr->e_code->arg1 = gen_nextreg();
             get_nextplace(expr->e_code->arg1, REG);
-            expr->e_code->arg2->p_index = 1; //TODO fix AST
+            expr->e_code->arg2->a_val = 1; //TODO fix AST
             //expr->e_code->arg3 = gen_nextreg();
             get_nextplace(expr->e_code->arg3, REG);
             print_instruction(fp, expr->e_code);

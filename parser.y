@@ -160,6 +160,10 @@ param_decl
     : passing_indicator type IDENT_TOKEN 
         { 
           $$ = allocate(sizeof(struct s_param));
+          $$->p_code = allocate(sizeof(struct s_instr));
+          $$->p_code->arg1 = allocate(sizeof(struct s_arg));
+          $$->p_code->arg2 = allocate(sizeof(struct s_arg));
+          //$$->p_code->arg3 = allocate(sizeof(struct s_arg));
           $$->d_kind = $1;
           $$->d_type = $2;
           $$->d_id = $3;
@@ -244,6 +248,10 @@ var_name
     : IDENT_TOKEN
         { 
           $$ = allocate(sizeof(struct s_varname));
+          $$->v_code = allocate(sizeof(struct s_instr));
+          $$->v_code->arg1 = allocate(sizeof(struct s_arg));
+          $$->v_code->arg2 = allocate(sizeof(struct s_arg));
+          $$->v_code->arg3 = allocate(sizeof(struct s_arg));
           /* $$->d_lineno = ln; */
           $$->v_id = $1;
         }
@@ -317,6 +325,9 @@ statement
     | IDENT_TOKEN assign expression
         {
           $$ = allocate(sizeof(struct s_stmt));
+          $$->s_code = allocate(sizeof(struct s_instr));
+          $$->s_code->arg1 = allocate(sizeof(struct s_arg));
+          $$->s_code->arg2 = allocate(sizeof(struct s_arg));
           $$->s_lineno = $2;
           $$->s_kind = STMT_ASSIGN;
           $$->s_info.s_assign.asg_id = $1;
