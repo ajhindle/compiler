@@ -25,7 +25,7 @@ extern FILE *yyin;
 
 /*-------------------------------------------------------------------------*/
 static  void  usage(void);
-void          report_error_and_exit(const char *msg);
+//void          report_error_and_exit(const char *msg);
 void          *checked_malloc(int num_bytes);
 /*-------------------------------------------------------------------------*/
 

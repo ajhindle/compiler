@@ -19,7 +19,7 @@ extern char    *yytext;
 
 int ln = 1;
 void yyerror(const char *msg);
-void *allocate(int size);
+//void *allocate(int size);
 
 %}
 
@@ -160,10 +160,7 @@ param_decl
     : passing_indicator type IDENT_TOKEN 
         { 
           $$ = allocate(sizeof(struct s_param));
-          $$->p_code = allocate(sizeof(struct s_instr));
-          $$->p_code->arg1 = allocate(sizeof(struct s_arg));
-          $$->p_code->arg2 = allocate(sizeof(struct s_arg));
-          //$$->p_code->arg3 = allocate(sizeof(struct s_arg));
+          $$->p_code = alloc_code(2);
           $$->d_kind = $1;
           $$->d_type = $2;
           $$->d_id = $3;
@@ -248,10 +245,7 @@ var_name
     : IDENT_TOKEN
         { 
           $$ = allocate(sizeof(struct s_varname));
-          $$->v_code = allocate(sizeof(struct s_instr));
-          $$->v_code->arg1 = allocate(sizeof(struct s_arg));
-          $$->v_code->arg2 = allocate(sizeof(struct s_arg));
-          $$->v_code->arg3 = allocate(sizeof(struct s_arg));
+          $$->v_code = alloc_code(2);
           /* $$->d_lineno = ln; */
           $$->v_id = $1;
         }
@@ -325,9 +319,7 @@ statement
     | IDENT_TOKEN assign expression
         {
           $$ = allocate(sizeof(struct s_stmt));
-          $$->s_code = allocate(sizeof(struct s_instr));
-          $$->s_code->arg1 = allocate(sizeof(struct s_arg));
-          $$->s_code->arg2 = allocate(sizeof(struct s_arg));
+          $$->s_code = alloc_code(2);
           $$->s_lineno = $2;
           $$->s_kind = STMT_ASSIGN;
           $$->s_info.s_assign.asg_id = $1;
@@ -414,6 +406,7 @@ expression
     | expression '+' get_lineno expression
         {
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(3);
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_ADD;
           $$->e1 = $1;
@@ -424,6 +417,7 @@ expression
     | expression '-' get_lineno expression
         {
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(3);
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_SUB;
           $$->e1 = $1;
@@ -434,6 +428,7 @@ expression
     | expression '*' get_lineno expression
         {
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(3);
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_MUL;
           $$->e1 = $1;
@@ -462,6 +457,7 @@ expression
     | IDENT_TOKEN
         { 
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(2);
           $$->e_lineno = ln;
           $$->e_kind = EXPR_ID;
           $$->e_id = $1;
@@ -472,6 +468,7 @@ expression
     | INT_VAL_TOKEN
         {
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(2);
           $$->e_lineno = ln;
           $$->e_kind = EXPR_INTCONST;
           $$->e_intval = $1;
@@ -481,6 +478,7 @@ expression
     | FLT_VAL_TOKEN
         {
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(2);
           $$->e_lineno = ln;
           $$->e_kind = EXPR_FLTCONST;
           $$->e_fltval = $1;
@@ -498,7 +496,7 @@ void yyerror(const char *msg) {
     fprintf(stderr, "**** Input line %d, near `%s': %s\n", ln, yytext, msg);
     return;
 }
-
+/*
 void *
 allocate(int size) {
 
@@ -509,6 +507,6 @@ allocate(int size) {
         report_error_and_exit("Out of memory");
     return addr;
 }
-
+*/
 /*---------------------------------------------------------------------------*/
 

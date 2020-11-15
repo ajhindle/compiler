@@ -9,6 +9,7 @@
 #ifndef AST_H
 #define AST_H
 
+
 typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
 typedef struct s_varname    *VarName;
@@ -26,6 +27,9 @@ typedef struct s_prog   	*Program;
 
 typedef	struct s_instr		*Instr;
 typedef	struct s_arg		*Arg;
+
+
+
 
 typedef enum {
     BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, 
@@ -261,6 +265,9 @@ struct s_procs {
 	Proc	p_first;
 	Procs	p_rest;
 };
+
+Instr alloc_code(int num_args);
+void *allocate(int size);
 
 #endif /* AST_H */
 
