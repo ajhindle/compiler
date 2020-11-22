@@ -436,6 +436,17 @@ expression
           $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
         }
 
+    | expression '/' get_lineno expression
+        {
+          $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(3);
+          $$->e_kind = EXPR_BINOP;
+          $$->e_binop = BINOP_DIV;
+          $$->e1 = $1;
+          $$->e2 = $4;
+          $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
+        }
+
     | '(' expression ')'
         {
           $$ = $2;

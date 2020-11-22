@@ -21,7 +21,6 @@ void gen_expression(FILE *fp, Expr expr);
 void print_instruction(FILE *fp, Instr instr);
 void print_instr_arg(FILE *fp, Arg arg); 
 void get_nextplace(Arg arg, AType a_type);
-void gen_binop(FILE *fp, Expr expr); 
 
 int curr_reg;
 int curr_slot;
@@ -37,7 +36,7 @@ gen_prog(FILE *fp, Program prog) {
 void
 gen_proc(FILE *fp, Proc proc) {
 
-    int     slot_ct = proc->p_param_ct + proc->p_var_ct;
+    int slot_ct = proc->p_param_ct + proc->p_var_ct;
     
     curr_reg = 0;
     curr_slot = 0;
@@ -163,6 +162,9 @@ print_instr_arg(FILE *fp, Arg arg) {
         case INTCONST:
             fprintf(fp, "%d ", arg->a_val);
             break;
+        case REALCONST:
+            fprintf(fp, "%.5f ", arg->a_fltval);
+            break;
     }
 }
 
@@ -179,6 +181,9 @@ get_nextplace(Arg arg, AType a_type) {
             arg->a_val = curr_slot;
             arg->a_type = SLOT;
             curr_slot = curr_slot + 1;
+            break;
+        default:
+            //ERROR
             break;
     }
 }
@@ -265,7 +270,6 @@ gen_expressions(FILE *fp, Exprs exprs) {
 void
 gen_expression(FILE *fp, Expr expr) {
 
-    //char    *val = checked_malloc(sizeof(char[5]));
     EKind e_kind = expr->e_kind;
 
     switch (e_kind) {
@@ -285,29 +289,24 @@ gen_expression(FILE *fp, Expr expr) {
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_FLTCONST:
-            /* fprintf(fp, "%.2f", expr->e_fltval); */
-            //sprintf(val, "%.1f", expr->e_fltval);
-            //expr->e_code = checked_malloc(sizeof(struct s_instr));
-            //expr->e_place = gen_nextreg();
-            get_nextplace(expr->e_place, REG);
             expr->e_code->op = REAL_CONST;
+            get_nextplace(expr->e_place, REG);
             expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2->a_val = expr->e_fltval;
+            expr->e_code->arg2->a_type = REALCONST;
+            expr->e_code->arg2->a_fltval = expr->e_fltval;
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:
-            gen_binop(fp, expr);
-            /*
+            expr->e1->e_place = allocate(sizeof(struct s_arg));
+            expr->e2->e_place = allocate(sizeof(struct s_arg));
+            get_nextplace(expr->e1->e_place, REG);
+            get_nextplace(expr->e2->e_place, REG);
             gen_expression(fp, expr->e1);
-            // fprintf(fp, " %s ", binopname[expr->e_binop]);
             gen_expression(fp, expr->e2);
-            //expr->e_code->op = codegen_binop[expr->e_type][expr->e_binop];
-            expr->e_code->op = MUL_INT;
-            expr->e_code->arg1 = expr->e1->e_place;
+            expr->e_code->arg1 = expr->e_place;
             expr->e_code->arg2 = expr->e1->e_place;
-            get_nextplace(expr->e_code->arg3, REG);
+            expr->e_code->arg3 = expr->e2->e_place;
             print_instruction(fp, expr->e_code);
-            */
             break;
         case EXPR_UNOP:
             fprintf(fp, " %s", unopname[expr->e_unop]);
@@ -316,40 +315,3 @@ gen_expression(FILE *fp, Expr expr) {
     }
 }
 
-void
-gen_binop(FILE *fp, Expr expr) {
-
-    BinOp e_binop = expr->e_binop;
-
-    switch (e_binop) {
-        case BINOP_MUL:     /* TODO add handle for REAL type */
-            expr->e_code->op = MUL_INT;
-            expr->e1->e_place = allocate(sizeof(struct s_arg));
-            expr->e2->e_place = allocate(sizeof(struct s_arg));
-            get_nextplace(expr->e1->e_place, REG);
-            get_nextplace(expr->e2->e_place, REG);
-            gen_expression(fp, expr->e1);
-            gen_expression(fp, expr->e2);
-            expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2 = expr->e1->e_place;
-            expr->e_code->arg3 = expr->e2->e_place;
-            print_instruction(fp, expr->e_code);
-            break;
-        case BINOP_ADD:     /* TODO add handle for REAL type */
-            expr->e_code->op = ADD_INT;
-            expr->e1->e_place = allocate(sizeof(struct s_arg));
-            expr->e2->e_place = allocate(sizeof(struct s_arg));
-            get_nextplace(expr->e1->e_place, REG);
-            get_nextplace(expr->e2->e_place, REG);
-            gen_expression(fp, expr->e1);
-            gen_expression(fp, expr->e2);
-            expr->e_code->arg1 = expr->e_place;
-            expr->e_code->arg2 = expr->e1->e_place;
-            expr->e_code->arg3 = expr->e2->e_place;
-            print_instruction(fp, expr->e_code);
-            break;
-        default:
-            /* fprintf(fp, "%d", expr->e_val); */
-            break;
-    }
-}

@@ -144,6 +144,7 @@ struct s_instr {
 struct s_arg {
     AType   a_type;
     int     a_val;
+    float   a_fltval;
 };
 
 struct s_param {

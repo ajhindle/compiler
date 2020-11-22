@@ -50,7 +50,7 @@ valres          { return VALRES_TOKEN; }
 
 {ID}            { yylval.str_val = (char *) strdup(yytext); return IDENT_TOKEN; }
 
-[-+*,;(){}]     { return yytext[0]; }         /* single character operators */
+[-+*/,;(){}]     { return yytext[0]; }         /* single character operators */
 
 ":="            { return ASSIGN_TOKEN; }
 

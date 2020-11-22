@@ -15,6 +15,8 @@ void analyse_statements(FILE *fp, Stmts stmts);
 void analyse_statement(FILE *fp, Stmt stmt);
 void analyse_expressions(FILE *fp, Exprs exprs);
 void analyse_expression(FILE *fp, Expr expr);
+void analyse_binop(FILE *fp, Expr expr);
+void set_op(FILE *fp, Expr expr); 
 
 int param_ct;
 int var_ct;
@@ -183,28 +185,7 @@ analyse_expression(FILE *fp, Expr expr) {
             fprintf(fp, "Value %.3f is type FLOAT\n", expr->e_fltval);
             break;
         case EXPR_BINOP:
-            analyse_expression(fp, expr->e1);
-            analyse_expression(fp, expr->e2);
-            if (expr->e1->e_type == INT && expr->e2->e_type == INT) {
-                expr->e_type = INT;
-                fprintf(fp, "Binop is type INT\n");
-                return;
-            }
-            if (expr->e1->e_type == FLOAT && expr->e2->e_type == FLOAT) {
-                expr->e_type = FLOAT;
-                fprintf(fp, "Binop is type FLOAT\n");
-                return;
-            }
-            if (expr->e1->e_type == INT && expr->e2->e_type == FLOAT) {
-                expr->e_type = FLOAT;
-                fprintf(fp, "Binop is type FLOAT\n");
-                return;
-            }
-            if (expr->e1->e_type == FLOAT && expr->e2->e_type == INT) {
-                expr->e_type = FLOAT;
-                fprintf(fp, "Binop is type FLOAT\n");
-                return;
-            }
+            analyse_binop(fp, expr); 
             break;
         case EXPR_UNOP:
             analyse_expression(fp, expr->e1);
@@ -214,3 +195,103 @@ analyse_expression(FILE *fp, Expr expr) {
     }
 }
 
+void
+analyse_binop(FILE *fp, Expr expr) {
+
+    analyse_expression(fp, expr->e1);
+    analyse_expression(fp, expr->e2);
+    if (expr->e1->e_type == INT && expr->e2->e_type == INT) {
+        expr->e_type = INT;
+        fprintf(fp, "Binop is type INT\n");
+    } 
+    else {
+        expr->e_type = FLOAT;
+        fprintf(fp, "Binop is type FLOAT\n");
+    }
+    set_op(fp, expr);
+
+}
+
+void
+set_op(FILE *fp, Expr expr) {
+
+    if (expr->e_type == INT) {
+        switch (expr->e_binop) {
+            case BINOP_ADD:
+                expr->e_code->op = ADD_INT;
+                break;
+            case BINOP_SUB:
+                expr->e_code->op = SUB_INT;
+                break;
+            case BINOP_MUL:
+                expr->e_code->op = MUL_INT;
+                break;
+            case BINOP_DIV:
+                expr->e_code->op = DIV_INT;
+                break;
+            case BINOP_EQ:
+                expr->e_code->op = CMP_EQ_INT;
+                break;
+            case BINOP_NE:
+                expr->e_code->op = CMP_NE_INT;
+                break;
+            case BINOP_GT:
+                expr->e_code->op = CMP_GT_INT;
+                break;
+            case BINOP_GE:
+                expr->e_code->op = CMP_GE_INT;
+                break;
+            case BINOP_LT:
+                expr->e_code->op = CMP_LT_INT;
+                break;
+            case BINOP_LE:
+                expr->e_code->op = CMP_LE_INT;
+                break;
+            case BINOP_OR:
+                expr->e_code->op = OR;
+                break;
+            case BINOP_AND:
+                expr->e_code->op = AND;
+                break;
+        }
+    }
+    else {
+        switch (expr->e_binop) {
+            case BINOP_ADD:
+                expr->e_code->op = ADD_REAL;
+                break;
+            case BINOP_SUB:
+                expr->e_code->op = SUB_REAL;
+                break;
+            case BINOP_MUL:
+                expr->e_code->op = MUL_REAL;
+                break;
+            case BINOP_DIV:
+                expr->e_code->op = DIV_REAL;
+                break;
+            case BINOP_EQ:
+                expr->e_code->op = CMP_EQ_REAL;
+                break;
+            case BINOP_NE:
+                expr->e_code->op = CMP_NE_REAL;
+                break;
+            case BINOP_GT:
+                expr->e_code->op = CMP_GT_REAL;
+                break;
+            case BINOP_GE:
+                expr->e_code->op = CMP_GE_REAL;
+                break;
+            case BINOP_LT:
+                expr->e_code->op = CMP_LT_REAL;
+                break;
+            case BINOP_LE:
+                expr->e_code->op = CMP_LE_REAL;
+                break;
+            case BINOP_OR:
+                expr->e_code->op = OR;
+                break;
+            case BINOP_AND:
+                expr->e_code->op = AND;
+        }
+    }
+}
