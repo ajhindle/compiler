@@ -1,13 +1,13 @@
-HDR =		ast.h std.h missing.h parser.h traverse.h pretty.h analyser.h codegen.h n7c.h 
+HDR =		ast.h util.h std.h missing.h parser.h traverse.h pretty.h analyser.h codegen.h n7c.h 
 
-OBJ =		ast.o n7c.o parser.o scanner.o traverse.o analyser.o codegen.o pretty.o
+OBJ =		ast.o util.o n7c.o parser.o scanner.o traverse.o analyser.o codegen.o pretty.o
 
 CC = 		gcc -Wall -g
 
 n7c:		$(OBJ)
 		$(CC) -o n7c $(OBJ)
 
-parser.c parser.h: parser.y ast.h std.h missing.h
+parser.c parser.h: parser.y util.h ast.h std.h missing.h
 		bison --debug -v -d parser.y -o parser.c
 
 scanner.c:	scanner.l parser.h std.h ast.h

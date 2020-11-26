@@ -2,17 +2,8 @@
 #include <stdlib.h>
 #include "n7c.h"
 #include "ast.h"
-/*
-void
-alloc_code(Instr *code) {
+#include "util.h"
 
-    code = allocate(sizeof(struct s_instr));
-    code->arg1 = allocate(sizeof(struct s_arg));
-    code->arg2 = allocate(sizeof(struct s_arg));
-    code->arg3 = allocate(sizeof(struct s_arg));
-
-}
-*/
 Instr
 alloc_code(int num_args) {
 
@@ -25,7 +16,7 @@ alloc_code(int num_args) {
 
     return code;
 }
-
+/*
 void *
 allocate(int size) {
 
@@ -36,3 +27,4 @@ allocate(int size) {
         report_error_and_exit("Out of memory");
     return addr;
 }
+*/

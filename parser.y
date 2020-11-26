@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "ast.h"
 #include "std.h"
+#include "util.h"
 #include "missing.h"
 
 extern Program parsed_program;

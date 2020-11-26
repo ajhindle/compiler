@@ -268,7 +268,7 @@ struct s_procs {
 };
 
 Instr alloc_code(int num_args);
-void *allocate(int size);
+
 
 #endif /* AST_H */
 

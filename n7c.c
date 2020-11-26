@@ -71,8 +71,6 @@ main(int argc, char **argv) {
     else {
         /* report_error_and_exit("Unable to generate code"); */
         proc_prog(fp, analyse_prog, parsed_program);
-        //gen_prog(fp, parsed_program);
-        //proc_prog(fp, analyse_prog, parsed_program);
         proc_prog(fp, gen_prog, parsed_program);
     }
 
@@ -87,12 +85,14 @@ usage(void) {
     printf("usage: n7c [-p] n7_source\n");
 }
 
+/*
 void
 report_error_and_exit(const char *msg) {
 
     fprintf(stderr, "Error: %s\n", msg);
     exit(EXIT_FAILURE);
 }
+
 
 void *
 checked_malloc(int num_bytes) {
@@ -106,5 +106,5 @@ checked_malloc(int num_bytes) {
 
     return addr;
 }
-
+*/
 /*-------------------------------------------------------------------------*/

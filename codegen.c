@@ -1,18 +1,15 @@
 #include <stdio.h>
 #include "ast.h"
+#include "util.h"
 #include "traverse.h"
 
 /* #extern void report_error_and_exit(const char *msg); */
 
-// const char *codegen_binop[][2] = {{CG_BINOP_INT}, {CG_BINOP_REAL}};
-
-void *checked_malloc(int num_bytes);
 
 void gen_proc(FILE *fp, Proc proc);
 void gen_header(FILE *fp, Header header);
 void gen_params(FILE *fp, Params params);
 void gen_decl(FILE *fp, Decl decl);
-void gen_type(FILE *fp, VType type);
 void gen_varnames(FILE *fp, VarNames varnames);
 void gen_statements(FILE *fp, Stmts stmts);
 void gen_statement(FILE *fp, Stmt stmt);
@@ -28,8 +25,6 @@ int curr_slot;
 void
 gen_prog(FILE *fp, Program prog) {
 
-    /* report_error_and_exit("Unable to pretty-print"); */
-
     proc_procs(fp, gen_proc, prog->procs);
 }
 
@@ -41,7 +36,6 @@ gen_proc(FILE *fp, Proc proc) {
     curr_reg = 0;
     curr_slot = 0;
 
-    /* fprintf(fp, "%s", "proc_");  */
     fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", slot_ct);
     proc_header(fp, gen_header, proc->p_header);
@@ -87,8 +81,6 @@ gen_decl(FILE *fp, Decl decl) {
     /* gen_type(fp, decls->d_first->d_type);*/
     proc_varnames(fp, gen_varnames, decl->d_varnames);
 
-    //if (decls->d_rest != NULL) 
-    //    proc_decls(fp, gen_decls, decls->d_rest); 
 }
 
 void
@@ -111,23 +103,7 @@ gen_varnames(FILE *fp, VarNames varnames) {
 }
 
 void
-gen_type(FILE *fp, VType type) {
-    switch (type) {
-        case INT:
-            /* fprintf(fp, "%s ", "int"); */
-            fprintf(fp, "%s ", "int"); 
-            break;
-        case FLOAT:
-            /* fprintf(fp, "%s ", "float"); */
-            break;
-    }
-}
-
-void
 gen_statements(FILE *fp, Stmts stmts) {
-
-    /* fprintf(fp, "curr_reg address: %p\ncurr_reg value: %d\n", curr_reg, 
-     * *curr_reg); */
 
     if (stmts->s_first != NULL) {
         proc_statement(fp, gen_statement, stmts->s_first); 
@@ -211,9 +187,7 @@ gen_statement(FILE *fp, Stmt stmt) {
             print_instruction(fp, stmt->s_code);
             break;
         case STMT_BLOCK:
-            /* fprintf(fp, "{\n"); */
             gen_statements(fp, stmt->s_info.s_block);
-            /* fprintf(fp, "\n}"); */
             break;
         case STMT_COND:
             fprintf(fp, "%s ", "if");

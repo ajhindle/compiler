@@ -1,10 +1,11 @@
 /*
  * Username : ajh
  * Date     : 27-09-2006
+ *            25-11-2020
  *
- * File     : hash_util.c
+ * File     : symbol.c
  *
- * This file contains a number of functions which relate to manipulating the 
+ * This file contains functions which relate to manipulating the 
  * hash table
 */
 
@@ -43,9 +44,6 @@ static int is_prime(int n);
 */
 
 
-/*
- * Return a pointer to a new hash table after resizing an old one.
-*/ 
 
 /*
  * return a hash for a given key
@@ -75,49 +73,9 @@ static int hash(char *key, int tsize);
 ** cannot be allocated for the duplicate.
 */
 
-/*
-** Call malloc and abort if the specified amount of memory
-** cannot be allocated.
-*/
+int 
+is_duplicate(int doc_ref, int *array, int size) {
 
-
-/*
-void add_doc_ref(int doc_ref, Hash_Table *ht, int pos)
-{
-    int *temp;
-
-    if ( isduplicate(doc_ref, ht->table[pos].doc_array, ht->table[pos].num_doc) )
-        return;
-    
-    if (ht->table[pos].num_doc < ht->table[pos].array_size){
-        ht->table[pos].doc_array[ht->table[pos].num_doc] = doc_ref;
-    }
-    else {
-        ht->table[pos].array_size *= DOC_TBL_MULT;
-        temp = calloc(ht->table[pos].array_size, sizeof(int));
-        temp = memcpy(temp, ht->table[pos].doc_array, 
-                sizeof(int)*ht->table[pos].num_doc);
-
-        free(ht->table[pos].doc_array);
-        ht->table[pos].doc_array = NULL;
-
-        ht->table[pos].doc_array = temp;
-
-
-        // fill rest of array with -1 
-        memset(&ht->table[pos].doc_array[ht->table[pos].num_doc], -1, 
-                sizeof(int)*(ht->table[pos].array_size - ht->table[pos].num_doc));
-
-        ht->table[pos].doc_array[ht->table[pos].num_doc] = doc_ref;
-    } 
-
-    ht->table[pos].num_doc++ ;
-}
-
-*/
-
-int is_duplicate(int doc_ref, int *array, int size) 
-{
     int i;
 
     for (i = 0; i < size; i++) {
@@ -128,8 +86,9 @@ int is_duplicate(int doc_ref, int *array, int size)
     return 0;
 }
 
-SymbolTbl *st_init(size_t size)
-{
+SymbolTbl 
+*st_init(size_t size) {
+
 	SymbolTbl *st;
     int i = 0;
 
@@ -138,10 +97,10 @@ SymbolTbl *st_init(size_t size)
 	st->table_size = size;
 	st->num_items = 0;
 
-	st->s_item = safe_malloc(size * sizeof(TblEntry));
+	st->s_items = safe_malloc(size * sizeof(TblEntry));
 
     for (i = 0; i < size; i++) {
-        st->s_item[i].key = NULL; 
+        st->s_items[i].key = NULL; 
         /* st->table[i].num_doc = 0;
         st->table[i].array_size = DOC_TBL_SIZE;
         */
@@ -164,9 +123,11 @@ int *make_doc_array(int size)
 }
 */
 
-SymbolTbl *st_rehash(SymbolTbl *st)
-{
+SymbolTbl 
+*st_rehash(SymbolTbl *st) {
+
     SymbolTbl *newht;
+
     int i = 0, newsize = 0, pos;
 
     newsize = next_prime(TBL_MULT * st->table_size);
@@ -175,9 +136,9 @@ SymbolTbl *st_rehash(SymbolTbl *st)
 
 
     for (i = 0; i < st->table_size; i++) {
-        if ( st->s_item[i].key != NULL) {
+        if ( st->s_items[i].key != NULL) {
 
-            pos = st_insert(newht, chomp(st->s_item[i].key));
+            pos = st_insert(newht, chomp(st->s_items[i].key));
             /*
             newht->table[pos].num_doc = st->table[i].num_doc;
             newht->table[pos].array_size = st->table[i].array_size;
@@ -195,34 +156,35 @@ SymbolTbl *st_rehash(SymbolTbl *st)
     return newht;
 }
 
-void st_free(SymbolTbl *st)
-{
+void 
+st_free(SymbolTbl *st) {
     int i;
 
     for (i = 0; i < st->table_size; i++) {
-        if (st->s_item[i].key != NULL) {
+        if (st->s_items[i].key != NULL) {
             // free(ht->table[i].doc_array);
             // ht->table[i].doc_array = NULL;
-            free(st->s_item[i].key);
-            st->s_item[i].key = NULL;
+            free(st->s_items[i].key);
+            st->s_items[i].key = NULL;
         }
     }
-    free(st->s_item);
-    st->s_item = NULL;
+    free(st->s_items);
+    st->s_items = NULL;
     free(st);
     st = NULL;
 }
 
 /* Determine whether argument is prime. */
-int is_prime(int n) {
+int 
+is_prime(int n) {
+
     int divisor;
-    if (n<2) {
+    if (n < 2) {
         return 0;
     }
-    for (divisor=2; divisor*divisor<=n; divisor++) {
-        if (n%divisor==0) {
-            /* factor found, so can't be 
-            * prime */
+    for (divisor =2 ; divisor * divisor <= n; divisor++) {
+        if (n % divisor == 0) {
+            /* factor found, so can't be prime */
             return 0;
         }
     }
@@ -232,17 +194,21 @@ int is_prime(int n) {
 
 
 /* Find the next prime after n */
-int next_prime(int n) {
-    n = n+1;
-    while (!is_prime(n)) {
-        n = n+1;
-    }
+int 
+next_prime(int n) {
+
+    n = n + 1;
+
+    while (!is_prime(n)) 
+        n = n + 1;
+
     return n;
 }
 
 
-static int hash(char *key, int tsize) 
-{
+int 
+hash(char *key, int tsize) {
+
     int h = 0, j, len;
 
     len = strlen(key);
@@ -261,13 +227,13 @@ st_insert(SymbolTbl *st, char *key )
 
     h = hash(key, st->table_size);
 
-    while (st->s_item[h].key != NULL) {
+    while (st->s_items[h].key != NULL) {
         h++;
         if (h >= st->table_size)
             h = 0;
     }
 
-    st->s_item[h].key = safe_strdup(key);
+    st->s_items[h].key = safe_strdup(key);
 
     st->num_items++;  
 
@@ -289,13 +255,13 @@ st_lookup(SymbolTbl *st, char *key)
    i = h;
    for ( ; i < st->table_size; i++) {
 
-       if (st->s_item[i].key == NULL) 
+       if (st->s_items[i].key == NULL) 
            return -1;
 
-       if (strcmp(st->s_item[i].key, key) == 0) 
+       if (strcmp(st->s_items[i].key, key) == 0) 
            return i;
 
-       if ( i == h-1 )
+       if ( i == h - 1 )
            return -1;
 
        if ( i == st->table_size - 1 )
@@ -313,8 +279,8 @@ st_dump(SymbolTbl *st)
 
     for (i = 0; i < st->table_size; i++) {
 
-        if (st->s_item[i].key != NULL) {
-            printf("\n%s,", st->s_item[i].key);
+        if (st->s_items[i].key != NULL) {
+            printf("\n%s,", st->s_items[i].key);
             //printf("%d,", st->table[i].num_doc);
 
             //for(j = 0; j < st->table[i].num_doc; j++)
