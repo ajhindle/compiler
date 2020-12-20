@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "ast.h"
 #include "traverse.h"
+#include "symbol.h"
 
 extern void report_error_and_exit(const char *msg);
 
@@ -8,7 +9,7 @@ extern void report_error_and_exit(const char *msg);
 void analyse_proc(FILE *fp, Proc proc);
 void analyse_header(FILE *fp, Header header);
 void analyse_params(FILE *fp, Params params);
-void analyse_decls(FILE *fp, Decls decls);
+void analyse_decl(FILE *fp, Decl decl);
 void analyse_type(FILE *fp, VType type);
 void analyse_varnames(FILE *fp, VarNames varnames);
 void analyse_statements(FILE *fp, Stmts stmts);
@@ -23,8 +24,6 @@ int var_ct;
 
 void
 analyse_prog(FILE *fp, Program prog) {
-
-    /* report_error_and_exit("Unable to pretty-print"); */
 
     proc_procs(fp, analyse_proc, prog->procs);
 }
@@ -41,18 +40,18 @@ analyse_proc(FILE *fp, Proc proc) {
     proc->p_var_ct = var_ct;
 
     if(proc->p_decls != NULL) {
-        analyse_decls(fp, proc->p_decls);
+        proc_decls(fp, analyse_decl, proc->p_decls);
         proc->p_var_ct = var_ct;
     }
     
-    analyse_statements(fp, proc->p_body);
+    proc_statements(fp, analyse_statements, proc->p_body);
 }
 
 void 
 analyse_header(FILE *fp, Header header) {
    
     if (header->h_params != NULL) 
-        analyse_params(fp, header->h_params);
+        proc_params(fp, analyse_params, header->h_params);
 }
 
 void 
@@ -72,25 +71,23 @@ analyse_params(FILE *fp, Params params) {
     analyse_type(fp, params->p_first->d_type);
 
     if (params->p_rest != NULL) {
-        analyse_params(fp, params->p_rest);
+        proc_params(fp, analyse_params, params->p_rest);
     }
 }
 
 void
-analyse_decls(FILE *fp, Decls decls) {
+analyse_decl(FILE *fp, Decl decl) {
 
     var_ct = var_ct + 1;
-    analyse_type(fp, decls->d_first->d_type);
-    analyse_varnames(fp, decls->d_first->d_varnames);
-    if (decls->d_rest != NULL) 
-        analyse_decls(fp, decls->d_rest); 
+    analyse_type(fp, decl->d_type);
+    proc_varnames(fp, analyse_varnames, decl->d_varnames);
 }
 
 void
 analyse_varnames(FILE *fp, VarNames varnames) {
 
     if (varnames->v_rest != NULL) {
-        analyse_varnames(fp, varnames->v_rest);
+        proc_varnames(fp, analyse_varnames, varnames->v_rest);
     }
 }
 
@@ -108,11 +105,11 @@ void
 analyse_statements(FILE *fp, Stmts stmts) {
 
     if (stmts->s_first != NULL) {
-        analyse_statement(fp, stmts->s_first); 
+        proc_statement(fp, analyse_statement, stmts->s_first); 
     }
 
     if (stmts->s_rest != NULL) {
-        analyse_statements(fp, stmts->s_rest); 
+        proc_statements(fp, analyse_statements, stmts->s_rest); 
     }
 }
 

@@ -221,8 +221,8 @@ hash(char *key, int tsize) {
 
 
 int 
-st_insert(SymbolTbl *st, char *key )
-{
+st_insert(SymbolTbl *st, char *key ) {
+
 	int h = 0;
 
     h = hash(key, st->table_size);
@@ -247,8 +247,8 @@ st_insert(SymbolTbl *st, char *key )
 */
 
 int 
-st_lookup(SymbolTbl *st, char *key)
-{
+st_lookup(SymbolTbl *st, char *key) {
+
    int i = 0, h = 0;
    
    h = hash(key, st->table_size);
@@ -275,12 +275,15 @@ st_lookup(SymbolTbl *st, char *key)
 void
 st_dump(SymbolTbl *st)
 {
-    int i, j;
+    int i, j, h;
+            
+    printf("i : h : key\n");
 
     for (i = 0; i < st->table_size; i++) {
 
         if (st->s_items[i].key != NULL) {
-            printf("\n%s,", st->s_items[i].key);
+            h = hash( st->s_items[i].key , st->table_size);
+            printf("%d : %d : %s\n", i, h, st->s_items[i].key);
             //printf("%d,", st->table[i].num_doc);
 
             //for(j = 0; j < st->table[i].num_doc; j++)
@@ -289,6 +292,6 @@ st_dump(SymbolTbl *st)
         }
     
     }
-    printf("\n%d", st->num_items);
-    printf("\n%d\n", st->table_size);
+    printf("number of items: %d\n", st->num_items);
+    printf("size of table: %d\n", st->table_size);
 }

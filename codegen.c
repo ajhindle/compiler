@@ -159,7 +159,7 @@ get_nextplace(Arg arg, AType a_type) {
             curr_slot = curr_slot + 1;
             break;
         default:
-            //ERROR
+            report_error_and_exit("Invalid instruction argument type."); 
             break;
     }
 }
@@ -187,45 +187,39 @@ gen_statement(FILE *fp, Stmt stmt) {
             print_instruction(fp, stmt->s_code);
             break;
         case STMT_BLOCK:
+            //TODO
             gen_statements(fp, stmt->s_info.s_block);
             break;
         case STMT_COND:
-            fprintf(fp, "%s ", "if");
+            //TODO
             gen_expression(fp, stmt->s_info.s_cond.if_cond);
-            fprintf(fp, " %s ", "then");
             gen_statement(fp, stmt->s_info.s_cond.if_then);
-            fprintf(fp, "%s ", "\nelse");
             gen_statement(fp, stmt->s_info.s_cond.if_else);
             break;
         case STMT_READ:
-            fprintf(fp, "%s ", "read");
-            fprintf(fp, "%s", stmt->s_info.s_read);
+            //TODO
             break;
         case STMT_SKIP:
-            fprintf(fp, "%s", "skip");
+            //TODO
             break;
         case STMT_WHILE:
-            fprintf(fp, "%s ", "while");
+            //TODO
             gen_expression(fp, stmt->s_info.s_while.while_cond);
-            fprintf(fp, " %s ", "do");
             gen_statement(fp, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
-            fprintf(fp, "%s ", "write");
+            //TODO
             gen_expression(fp, stmt->s_info.s_write);
             break;
         case STMT_FOR:
-            fprintf(fp, "%s ", "for");
-            fprintf(fp, "%s ", stmt->s_info.s_for.for_id);
+            //TODO
             gen_expression(fp, stmt->s_info.s_for.for_from_expr);
-            fprintf(fp, " %s ", "do");
             gen_expression(fp, stmt->s_info.s_for.for_to_expr);
             gen_statement(fp, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
-            fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
+            //TODO
             gen_expressions(fp, stmt->s_info.s_call.s_exprs);
-            fprintf(fp, ")");
             break;
     }
 }
@@ -248,7 +242,6 @@ gen_expression(FILE *fp, Expr expr) {
 
     switch (e_kind) {
         case EXPR_ID:
-
             expr->e_code->op = LOAD;
             // TODO get id.stackslot
             expr->e_code->arg1 = expr->e_place;
@@ -283,7 +276,7 @@ gen_expression(FILE *fp, Expr expr) {
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_UNOP:
-            fprintf(fp, " %s", unopname[expr->e_unop]);
+            //TODO 
             gen_expression(fp, expr->e1);
             break;
     }
