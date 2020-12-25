@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "traverse.h"
 #include "symbol.h"
+#include "stack.h"
 
 extern void report_error_and_exit(const char *msg);
 
@@ -19,11 +20,18 @@ void analyse_expression(FILE *fp, Expr expr);
 void analyse_binop(FILE *fp, Expr expr);
 void set_op(FILE *fp, Expr expr); 
 
-int param_ct;
-int var_ct;
+static int         param_ct;
+static int         var_ct;
+static SymbolTbl   *prog_st;
+static Stack       stack; 
 
 void
 analyse_prog(FILE *fp, Program prog) {
+
+    prog_st = st_init(31);
+    prog->p_st = prog_st;
+
+    stack = stack_init();
 
     proc_procs(fp, analyse_proc, prog->procs);
 }
@@ -33,6 +41,9 @@ analyse_proc(FILE *fp, Proc proc) {
 
     param_ct = 0;
     var_ct = 0;
+
+    Frame frame = push(stack);
+    frame->st = st_init(31);
 
     proc_header(fp, analyse_header, proc->p_header);
     
@@ -45,10 +56,15 @@ analyse_proc(FILE *fp, Proc proc) {
     }
     
     proc_statements(fp, analyse_statements, proc->p_body);
+
+    frame = pop(stack);
+    st_dump(frame->st);
 }
 
 void 
 analyse_header(FILE *fp, Header header) {
+
+    st_insert(prog_st, header->h_id);
    
     if (header->h_params != NULL) 
         proc_params(fp, analyse_params, header->h_params);
@@ -67,6 +83,8 @@ analyse_params(FILE *fp, Params params) {
         case REF:
             break;
     }
+
+    st_insert(stack->top->st, params->p_first->d_id);
 
     analyse_type(fp, params->p_first->d_type);
 
@@ -170,16 +188,16 @@ analyse_expression(FILE *fp, Expr expr) {
     switch (e_kind) {
         case EXPR_ID:
             /* TODO look up the symbol table to find the type */
-            expr->e_type = INT;
-            fprintf(fp, "Value %d is type INT\n", expr->e_intval);
+            //expr->e_type = INT;
+            fprintf(fp, "ID %s is type %d\n", expr->e_id, expr->e_type);
             break;
         case EXPR_INTCONST:
             expr->e_type = INT;
-            fprintf(fp, "Value %d is type INT\n", expr->e_intval);
+            fprintf(fp, "INTCONST value is %d\n", expr->e_intval);
             break;
         case EXPR_FLTCONST:
             expr->e_type = FLOAT;
-            fprintf(fp, "Value %.3f is type FLOAT\n", expr->e_fltval);
+            fprintf(fp, "FLOATCONST value is %.3f\n", expr->e_fltval);
             break;
         case EXPR_BINOP:
             analyse_binop(fp, expr); 

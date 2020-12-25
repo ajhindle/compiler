@@ -20,13 +20,8 @@
 #include "util.h"
 
 
-
-
 static int is_prime(int n); 
 
-/*
-** Return a pointer to a newly created hash table.
-*/
 
 /*
 ** Insert the specified key-value pair into the hash table.  
@@ -275,7 +270,7 @@ st_lookup(SymbolTbl *st, char *key) {
 void
 st_dump(SymbolTbl *st)
 {
-    int i, j, h;
+    int i, h;
             
     printf("i : h : key\n");
 

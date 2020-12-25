@@ -3,6 +3,7 @@
 #include "n7c.h"
 #include "ast.h"
 #include "util.h"
+#include "symbol.h"
 
 Instr
 alloc_code(int num_args) {

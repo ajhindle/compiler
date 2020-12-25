@@ -6,9 +6,12 @@
     Harald Sondergaard, August 2007.
 ---------------------------------------------------------------------------*/
 
+
+
 #ifndef AST_H
 #define AST_H
 
+#include "symbol.h"
 
 typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
@@ -29,8 +32,6 @@ typedef	struct s_instr		*Instr;
 typedef	struct s_arg		*Arg;
 
 
-
-
 typedef enum {
     BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, 
 	BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
@@ -46,6 +47,7 @@ typedef enum {
     CMP_EQ_REAL, CMP_NE_REAL, CPM_GT_REAL, CMP_GE_REAL 
 } ;
 */
+
 
 #define BINOP_NAMES "+", "-", "*", "/", "=", "!=", "<", "<=", \
     ">", ">=", "and", "or"
@@ -97,6 +99,7 @@ struct s_expr {
     Instr   e_code;     /* code generation instruction */
     Arg     e_place;    /* code generation place (register) */
     VType   e_type;     /* expression type */
+    SymbolTbl   *e_st;
 };
 
 typedef enum {
@@ -237,6 +240,7 @@ struct s_stmt {
     SKind   s_kind;
     SInfo   s_info;
     Instr   s_code;
+    SymbolTbl   *s_st;
 };
 
 struct s_stmts {
@@ -246,6 +250,7 @@ struct s_stmts {
 
 struct s_prog {
     Procs   procs;
+    SymbolTbl   *p_st;
 };
 
 struct s_header {
@@ -260,6 +265,7 @@ struct s_proc {
     Stmts   p_body;
     int     p_param_ct;
     int     p_var_ct;
+    SymbolTbl   *p_st;
 };
 
 struct s_procs {

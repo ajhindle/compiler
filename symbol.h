@@ -1,3 +1,7 @@
+
+#ifndef SYMBOL_H
+#define SYMBOL_H
+
 #define INITIAL_TBL_SIZE 41
 // #define MAX_STRING_SIZE 10000
 #define LOAD_LIMIT 0.85
@@ -22,7 +26,7 @@ typedef struct {
 /*
  * Returns an integer representing the position of the given word in 
  * the list. Returns -1 if it is not found
-*/
+ */
 extern int st_lookup(SymbolTbl *st, char *key);
 
 /* 
@@ -46,3 +50,5 @@ extern int is_duplicate(int doc_ref, int *array, int size);
 extern int *make_doc_array(int size);
 extern void add_doc_ref(int doc_ref, SymbolTbl *st, int pos);
 */
+
+#endif /* SYMBOL_H */

@@ -16,6 +16,7 @@
 #include    "pretty.h"
 #include    "analyser.h"
 #include    "codegen.h"
+#include    "symbol.h"
 
 const char  *progname;
 const char  *n7_infile;
@@ -72,6 +73,7 @@ main(int argc, char **argv) {
         /* report_error_and_exit("Unable to generate code"); */
         proc_prog(fp, analyse_prog, parsed_program);
         proc_prog(fp, gen_prog, parsed_program);
+        st_dump(parsed_program->p_st);
     }
 
     return 0;
