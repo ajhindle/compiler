@@ -12,6 +12,7 @@ alloc_code(int num_args) {
     code = allocate(sizeof(struct s_instr));
     code->arg1 = allocate(sizeof(struct s_arg));
     code->arg2 = allocate(sizeof(struct s_arg));
+    // this causes a valgrind error
     if (num_args > 2)
         code->arg3 = allocate(sizeof(struct s_arg));
 

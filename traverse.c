@@ -46,9 +46,9 @@ proc_decls(FILE *fp, void (*f)(FILE *, Decl), Decls decls) {
 }
 
 void
-proc_varnames(FILE *fp, void (*f)(FILE *, VarNames), VarNames varnames) {
+proc_varnames(FILE *fp, void (*f)(FILE *, VarName), VarNames varnames) {
 
-    f(fp, varnames);
+    f(fp, varnames->v_first);
         
     if (varnames->v_rest != NULL) 
         proc_varnames(fp, f, varnames->v_rest);

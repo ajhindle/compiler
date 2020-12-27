@@ -50,7 +50,7 @@ typedef enum {
 
 
 #define BINOP_NAMES "+", "-", "*", "/", "=", "!=", "<", "<=", \
-    ">", ">=", "and", "or"
+    ">", ">=", "or", "and"
 
 #define CG_BINOP_INT "add_int", "sub_int", "mul_int", "div_int", \
 "cmp_eq_int", "cmp_ne_int", "cmp_lt_int", "cmp_le_int", \

@@ -9,8 +9,8 @@ const int INDENT_START = 0;
 const char *binopname[] = {BINOP_NAMES};
 const char *unopname[] = {UNOP_NAMES};
 
-void print_procs(FILE *fp, int indent, Procs procs);
-void print_header(FILE *fp, int indent, Header heaccder);
+void print_proc(FILE *fp, Proc proc);
+void print_header(FILE *fp, Header header);
 void print_params(FILE *fp, Params params);
 void print_decl(FILE *fp, Decl decls);
 void print_type(FILE *fp, VType type);
@@ -20,34 +20,6 @@ void print_statement(FILE *fp, Stmt stmt);
 void print_expressions(FILE *fp, Exprs exprs);
 void print_expression(FILE *fp, Expr expr);
 
-void print_hdr(FILE *fp, Header header);
-
-void
-print_proc(FILE *fp, Proc proc) {
-    fprintf(fp, "%s ", "proc"); 
-    proc_header(fp, print_hdr, proc->p_header);
-
-    if(proc->p_decls != NULL)
-        proc_decls(fp, print_decl, proc->p_decls);
-    
-    proc_statements(fp, print_statements, proc->p_body);
-    fprintf(fp, "\nend\n\n"); 
-
-    return;
-}
-
-void
-print_hdr(FILE *fp, Header header) {
-    
-    fprintf(fp, "%s(", header->h_id);
-    
-    if (header->h_params != NULL) 
-        proc_params(fp, print_params, header->h_params);
-
-    fprintf(fp, ")\n");
-
-    return;
-}
 
 
 void
@@ -60,33 +32,35 @@ pretty_prog(FILE *fp, Program prog) {
     proc_procs(fp, print_proc, prog->procs);
 }
 
-/* DELETE / replace this function */
+
 void
-print_procs(FILE *fp, int indent, Procs procs) {
+print_proc(FILE *fp, Proc proc) {
+    fprintf(fp, "%s ", "proc"); 
+    proc_header(fp, print_header, proc->p_header);
 
-    fprintf(fp, "%*s ", indent, "proc"); 
-    print_header(fp, indent, procs->p_first->p_header);
+    if(proc->p_decls != NULL)
+        proc_decls(fp, print_decl, proc->p_decls);
+    
+    proc_statements(fp, print_statements, proc->p_body);
+    fprintf(fp, "\nend\n\n"); 
 
-    //if(procs->p_first->p_decls != NULL)
-    //    print_decls(fp, procs->p_first->p_decls);
-    
-    //print_statements(fp, indent, procs->p_first->p_body);
-    fprintf(fp, "%*s", indent, "\nend\n\n"); 
-    
-    if(procs->p_rest != NULL)
-        print_procs(fp, indent, procs->p_rest);
+    return;
 }
 
-void 
-print_header(FILE *fp, int indent, Header header) {
 
+void
+print_header(FILE *fp, Header header) {
+    
     fprintf(fp, "%s(", header->h_id);
-   
+    
     if (header->h_params != NULL) 
-        print_params(fp, header->h_params);
+        proc_params(fp, print_params, header->h_params);
 
     fprintf(fp, ")\n");
+
+    return;
 }
+
 
 void 
 print_params(FILE *fp, Params params) {
@@ -116,7 +90,7 @@ void
 print_decl(FILE *fp, Decl decl) {
 
     proc_type(fp, print_type, decl->d_type);
-    proc_varnames(fp, print_varnames, decl->d_varnames);
+    print_varnames(fp, decl->d_varnames);
     fprintf(fp, ";\n");
 }
 
@@ -127,6 +101,7 @@ print_varnames(FILE *fp, VarNames varnames) {
         
     if (varnames->v_rest != NULL) {
         fprintf(fp, ", ");
+        print_varnames(fp, varnames->v_rest);
     }
 }
 

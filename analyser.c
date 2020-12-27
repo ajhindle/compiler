@@ -12,7 +12,7 @@ void analyse_header(FILE *fp, Header header);
 void analyse_params(FILE *fp, Params params);
 void analyse_decl(FILE *fp, Decl decl);
 void analyse_type(FILE *fp, VType type);
-void analyse_varnames(FILE *fp, VarNames varnames);
+void analyse_varnames(FILE *fp, VType type, VarNames varnames);
 void analyse_statements(FILE *fp, Stmts stmts);
 void analyse_statement(FILE *fp, Stmt stmt);
 void analyse_expressions(FILE *fp, Exprs exprs);
@@ -24,6 +24,9 @@ static int         param_ct;
 static int         var_ct;
 static SymbolTbl   *prog_st;
 static Stack       stack; 
+
+static const char  *vtypes[] = {VTYPE};
+static const char  *btypes[] = {BINOP_NAMES};
 
 void
 analyse_prog(FILE *fp, Program prog) {
@@ -104,16 +107,25 @@ void
 analyse_decl(FILE *fp, Decl decl) {
 
     var_ct = var_ct + 1;
-    analyse_type(fp, decl->d_type);
-    proc_varnames(fp, analyse_varnames, decl->d_varnames);
+    //analyse_type(fp, decl->d_type);
+    analyse_varnames(fp, decl->d_type, decl->d_varnames);
 }
 
 void
-analyse_varnames(FILE *fp, VarNames varnames) {
+analyse_varnames(FILE *fp, VType type, VarNames varnames) {
 
-    if (varnames->v_rest != NULL) {
-        proc_varnames(fp, analyse_varnames, varnames->v_rest);
-    }
+    int     pos;
+    VarName varname = varnames->v_first;
+
+    fprintf(fp, "Varname is %s\n", varname->v_id);
+    
+    pos = st_insert(stack->top->st, varname->v_id);
+    //add the type to symbol table too
+    stack->top->st->s_items[pos].type = type;
+
+    if (varnames->v_rest != NULL) 
+        analyse_varnames(fp, type, varnames->v_rest);
+
 }
 
 void
@@ -192,7 +204,7 @@ analyse_expression(FILE *fp, Expr expr) {
 
     int     pos;
     EKind   e_kind = expr->e_kind;
-    const   char *vtypes[] = {VTYPE};
+
 
     switch (e_kind) {
         case EXPR_ID:
@@ -200,16 +212,24 @@ analyse_expression(FILE *fp, Expr expr) {
             //TODO handler for undeclared var
             pos = st_lookup(stack->top->st, expr->e_id);
             expr->e_type = stack->top->st->s_items[pos].type;
-            fprintf(fp, "ID %s is type %s\n", expr->e_id, 
+            fprintf(fp, "Line %d: ID %s is type %s\n", 
+                    expr->e_lineno,
+                    expr->e_id, 
                     vtypes[stack->top->st->s_items[pos].type]);
             break;
         case EXPR_INTCONST:
             expr->e_type = INT;
-            fprintf(fp, "INTCONST value is %d\n", expr->e_intval);
+            //fprintf(fp, "INTCONST value is %d\n", expr->e_intval);
+            fprintf(fp, "Line %d: '%d' is an INTCONST\n", 
+                    expr->e_lineno,
+                    expr->e_intval); 
             break;
         case EXPR_FLTCONST:
             expr->e_type = FLOAT;
-            fprintf(fp, "FLOATCONST value is %.3f\n", expr->e_fltval);
+            //fprintf(fp, "FLOATCONST value is %.3f\n", expr->e_fltval);
+            fprintf(fp, "Line %d: '%.3f' is a FLOATCONST\n", 
+                    expr->e_lineno,
+                    expr->e_fltval); 
             break;
         case EXPR_BINOP:
             analyse_binop(fp, expr); 
@@ -229,11 +249,19 @@ analyse_binop(FILE *fp, Expr expr) {
     analyse_expression(fp, expr->e2);
     if (expr->e1->e_type == INT && expr->e2->e_type == INT) {
         expr->e_type = INT;
-        fprintf(fp, "Binop is type INT\n");
+        //fprintf(fp, "Binop is type INT\n");
+        fprintf(fp, "Line %d: '%s' is type %s\n", 
+                expr->e_lineno,
+                btypes[expr->e_binop],
+                vtypes[expr->e_type]); 
     } 
     else {
         expr->e_type = FLOAT;
-        fprintf(fp, "Binop is type FLOAT\n");
+        //fprintf(fp, "Binop is type FLOAT\n");
+        fprintf(fp, "Line %d: '%s' is type %s\n", 
+                expr->e_lineno,
+                btypes[expr->e_binop],
+                vtypes[expr->e_type]); 
     }
     set_op(fp, expr);
 

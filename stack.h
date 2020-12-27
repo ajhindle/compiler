@@ -16,6 +16,7 @@ struct s_stack {
 
 struct s_frame {
 	SymbolTbl   *st;
+    int         my_number;      //for testing
     Frame       next;
 };
 

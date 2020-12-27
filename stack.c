@@ -21,7 +21,7 @@ stack_init(void) {
 
 	Stack   stack;
 
-	stack = safe_malloc(sizeof(Stack));
+	stack = safe_malloc(sizeof(struct s_stack));
 
 	stack->top = NULL;
 	stack->num_of_frames = 0;
@@ -33,7 +33,7 @@ stack_init(void) {
 Frame
 push(Stack stack) {
 
-	Frame frame = safe_malloc(sizeof(Frame));
+	Frame frame = safe_malloc(sizeof(struct s_frame));
 
 	frame->next = stack->top;
 

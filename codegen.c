@@ -10,7 +10,7 @@ void gen_proc(FILE *fp, Proc proc);
 void gen_header(FILE *fp, Header header);
 void gen_params(FILE *fp, Params params);
 void gen_decl(FILE *fp, Decl decl);
-void gen_varnames(FILE *fp, VarNames varnames);
+void gen_varname(FILE *fp, VarName varname);
 void gen_statements(FILE *fp, Stmts stmts);
 void gen_statement(FILE *fp, Stmt stmt);
 void gen_expressions(FILE *fp, Exprs exprs);
@@ -79,26 +79,23 @@ void
 gen_decl(FILE *fp, Decl decl) {
 
     /* gen_type(fp, decls->d_first->d_type);*/
-    proc_varnames(fp, gen_varnames, decl->d_varnames);
+    proc_varnames(fp, gen_varname, decl->d_varnames);
 
 }
 
 void
-gen_varnames(FILE *fp, VarNames varnames) {
+gen_varname(FILE *fp, VarName varname) {
 
-    Instr v_code = varnames->v_first->v_code;
+    Instr v_code = varname->v_code;
     
     v_code->op = STORE;
     get_nextplace(v_code->arg1, SLOT);
     get_nextplace(v_code->arg2, REG);
 
     fprintf(fp, "# argument %s is in stack slot %d\n", 
-            varnames->v_first->v_id, v_code->arg1->a_val);
+            varname->v_id, v_code->arg1->a_val);
 
-    print_instruction(fp, varnames->v_first->v_code);
-
-    if (varnames->v_rest != NULL) 
-        proc_varnames(fp, gen_varnames, varnames->v_rest);
+    print_instruction(fp, varname->v_code);
 
 }
 
@@ -122,7 +119,8 @@ print_instruction(FILE *fp, Instr instr) {
     fprintf(fp, "    %s ", instr_opnames[instr->op]);
     if (instr->arg1 != NULL) print_instr_arg(fp, instr->arg1);
     if (instr->arg2 != NULL) print_instr_arg(fp, instr->arg2);
-    if (instr->arg3 != NULL) print_instr_arg(fp, instr->arg3);
+    if (instr->arg3 != NULL)    //valgrind doesn't like this 
+        print_instr_arg(fp, instr->arg3);
     fprintf(fp, "\n");
 }
 
