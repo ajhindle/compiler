@@ -10,12 +10,19 @@
 #define DOC_TBL_MULT 2
 #define DOC_TBL_SIZE 10
 
+
+/*
+ * Table entry contains param/variable/proc name (key) and its type.
+ */
 typedef struct {
 	char        *key;
-    //int         num_doc;
+    int         type;
     //int         array_size;
 } TblEntry;
 
+/*
+ * Symbol table is a hash table containing info on functions and variables.
+ */
 typedef struct {
 	int         table_size;
 	int         num_items;
@@ -30,25 +37,27 @@ typedef struct {
 extern int st_lookup(SymbolTbl *st, char *key);
 
 /* 
- * Inserts a new entry into the hash table and returns the hash key. 
+ * Inserts a new entry into the hash table and returns the ht address. 
  * Uses "open hashing" (closed addressing) hash collision technique.
  */
 extern int st_insert(SymbolTbl *st, char *key);
 
-/* Create a table and return a pointer to it */
+/* 
+ * Create a table and return a pointer to it 
+ */
 extern SymbolTbl *st_init(size_t size);
 
 /* Resize a table and return a pointer to it. */
 extern SymbolTbl *st_rehash(SymbolTbl *st);
 
+/* 
+ * Dump the contents of the hash table to stdout. This is for debugging 
+ * purposes.
+ */
 extern void st_dump(SymbolTbl *st);
 extern void st_free(SymbolTbl *st);
 
 extern int next_prime(int n); 
 extern int is_duplicate(int doc_ref, int *array, int size);
-/*
-extern int *make_doc_array(int size);
-extern void add_doc_ref(int doc_ref, SymbolTbl *st, int pos);
-*/
 
 #endif /* SYMBOL_H */

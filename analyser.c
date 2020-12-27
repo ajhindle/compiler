@@ -73,9 +73,12 @@ analyse_header(FILE *fp, Header header) {
 void 
 analyse_params(FILE *fp, Params params) {
 
+    int     pos;
+    Param   param = params->p_first;
+
     param_ct = param_ct + 1;
 
-    switch (params->p_first->d_kind) {
+    switch (param->d_kind) {
         case VAL:
             break;
         case VALRES:
@@ -84,9 +87,13 @@ analyse_params(FILE *fp, Params params) {
             break;
     }
 
-    st_insert(stack->top->st, params->p_first->d_id);
+    pos = st_insert(stack->top->st, param->d_id);
+    //add the type to symbol table too
+    stack->top->st->s_items[pos].type = param->d_type;
+    //decl: d_type
+    //proc: no type
 
-    analyse_type(fp, params->p_first->d_type);
+    analyse_type(fp, param->d_type);
 
     if (params->p_rest != NULL) {
         proc_params(fp, analyse_params, params->p_rest);
@@ -183,13 +190,18 @@ analyse_expressions(FILE *fp, Exprs exprs) {
 void
 analyse_expression(FILE *fp, Expr expr) {
 
-    EKind e_kind = expr->e_kind;
+    int     pos;
+    EKind   e_kind = expr->e_kind;
+    const   char *vtypes[] = {VTYPE};
 
     switch (e_kind) {
         case EXPR_ID:
-            /* TODO look up the symbol table to find the type */
-            //expr->e_type = INT;
-            fprintf(fp, "ID %s is type %d\n", expr->e_id, expr->e_type);
+            //lookup the symbol table to find the expr_id type
+            //TODO handler for undeclared var
+            pos = st_lookup(stack->top->st, expr->e_id);
+            expr->e_type = stack->top->st->s_items[pos].type;
+            fprintf(fp, "ID %s is type %s\n", expr->e_id, 
+                    vtypes[stack->top->st->s_items[pos].type]);
             break;
         case EXPR_INTCONST:
             expr->e_type = INT;

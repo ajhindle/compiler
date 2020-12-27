@@ -11,3 +11,4 @@ scanner.c
 *~
 st_test*
 stack_test*
+vgcore.*

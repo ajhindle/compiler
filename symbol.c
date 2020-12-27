@@ -23,12 +23,6 @@
 static int is_prime(int n); 
 
 
-/*
-** Insert the specified key-value pair into the hash table.  
-** Note that trailing newlines are stripped from both 'key' and 'value'.
-** Copies of both strings are made for the hash table, so you are free to delete
-** the originals after insertion.
-*/
 
 /*
 ** Return a pointer to the value associated with the specified key.
@@ -45,14 +39,7 @@ static int is_prime(int n);
 */
 static int hash(char *key, int tsize);
 
-/*
- * add a doc ref to a table entry in a hash table
-*/
 
-/*
-** Dump the contents of the hash table to stdout.
-** This is for debugging purposes.
-*/
 
 /*
 ** Strip newlines from the end of a string.  Returns a 
@@ -216,7 +203,7 @@ hash(char *key, int tsize) {
 
 
 int 
-st_insert(SymbolTbl *st, char *key ) {
+st_insert(SymbolTbl *st, char *key) {
 
 	int h = 0;
 
@@ -235,11 +222,6 @@ st_insert(SymbolTbl *st, char *key ) {
     return h;
 }
 
-
-/*
- * Returns an integer representing the position of the sought after word in 
- * the array. Returns -1 if it is not found
-*/
 
 int 
 st_lookup(SymbolTbl *st, char *key) {

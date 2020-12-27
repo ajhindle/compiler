@@ -60,6 +60,8 @@ typedef enum {
 "cmp_eq_real", "cmp_ne_real", "cmp_lt_real", "cmp_le_real", \
 "cmp_gt_real", "cmp_ge_real", "and", "or" 
 
+#define VTYPE "INT", "FLOAT"
+
 extern const char *binopname[];
 
 typedef enum {
@@ -99,7 +101,6 @@ struct s_expr {
     Instr   e_code;     /* code generation instruction */
     Arg     e_place;    /* code generation place (register) */
     VType   e_type;     /* expression type */
-    SymbolTbl   *e_st;
 };
 
 typedef enum {
