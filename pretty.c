@@ -4,8 +4,7 @@
 
 extern void report_error_and_exit(const char *msg);
 
-const int INDENT = 4;
-const int INDENT_START = 0;
+
 const char *binopname[] = {BINOP_NAMES};
 const char *unopname[] = {UNOP_NAMES};
 
@@ -19,30 +18,42 @@ void print_statements(FILE *fp, Stmts stmts);
 void print_statement(FILE *fp, Stmt stmt);
 void print_expressions(FILE *fp, Exprs exprs);
 void print_expression(FILE *fp, Expr expr);
+void indent_here(FILE *fp);
 
+// number of spaces to indent with
+const static int indent = 4;
 
+// point on line (column) to start writing
+static int write_pt = 0;
 
 void
 pretty_prog(FILE *fp, Program prog) {
 
     /* report_error_and_exit("Unable to pretty-print"); */
 
-    //int indent = INDENT_START;
-    //print_procs(fp, indent, prog->procs);
     proc_procs(fp, print_proc, prog->procs);
 }
 
 
 void
 print_proc(FILE *fp, Proc proc) {
+    
+    write_pt = 0;
+    indent_here(fp);
     fprintf(fp, "%s ", "proc"); 
     proc_header(fp, print_header, proc->p_header);
 
     if(proc->p_decls != NULL)
         proc_decls(fp, print_decl, proc->p_decls);
+
     
     proc_statements(fp, print_statements, proc->p_body);
-    fprintf(fp, "\nend\n\n"); 
+
+
+
+    fprintf(fp, "\n"); 
+    indent_here(fp);
+    fprintf(fp, "%s \n\n", "end"); 
 
     return;
 }
@@ -124,16 +135,26 @@ print_statements(FILE *fp, Stmts stmts) {
         proc_statement(fp, print_statement, stmts->s_first); 
     }
 
-    if (stmts->s_rest != NULL) {
+    if (stmts->s_rest != NULL) 
         fprintf(fp, ";\n");
-        //proc_statement(fp, print_statement, stmts->s_rest); 
-    }
+}
+
+void
+indent_here(FILE *fp) {
+    int i;
+    //fprintf(fp, "%*s", write_pt, " ");
+    //fprintf(fp, "Number of spaces to write: %d\n", write_pt);
+    fprintf(fp, "%d", write_pt);
+    for (i = 0; i < write_pt; i++)
+        putc(32, fp);
 }
 
 void
 print_statement(FILE *fp, Stmt stmt) {
 
-    SKind s_kind = stmt->s_kind;
+    SKind   s_kind = stmt->s_kind;
+            
+    indent_here(fp);
 
     switch (s_kind) {
         case STMT_ASSIGN:
@@ -142,16 +163,28 @@ print_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_BLOCK:
             fprintf(fp, "{\n");
+            write_pt += indent;
             proc_statements(fp, print_statements, stmt->s_info.s_block);
-            fprintf(fp, "\n}");
+            write_pt -= indent;
+            fprintf(fp, "\n");
+            indent_here(fp);
+            fprintf(fp, "}");
             break;
         case STMT_COND:
             fprintf(fp, "%s ", "if");
             proc_expression(fp, print_expression, stmt->s_info.s_cond.if_cond);
             fprintf(fp, " %s ", "then");
+            fprintf(fp, "%s", "\n");
+            write_pt += indent;
             proc_statement(fp, print_statement, stmt->s_info.s_cond.if_then);
-            fprintf(fp, "%s ", "\nelse");
+            write_pt -= indent;
+            fprintf(fp, "%s", "\n");
+            indent_here(fp);
+            fprintf(fp, "%s", "else");
+            fprintf(fp, "%s", "\n");
+            write_pt += indent;
             proc_statement(fp, print_statement, stmt->s_info.s_cond.if_else);
+            write_pt -= indent;
             break;
         case STMT_READ:
             fprintf(fp, "%s ", "read");
@@ -164,7 +197,10 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, "%s ", "while");
             proc_expression(fp, print_expression, stmt->s_info.s_while.while_cond);
             fprintf(fp, " %s ", "do");
+            fprintf(fp, " %s", "\n");
+            write_pt += indent;
             proc_statement(fp, print_statement, stmt->s_info.s_while.while_body);
+            write_pt -= indent;
             break;
         case STMT_WRITE:
             fprintf(fp, "%s ", "write");
@@ -184,6 +220,7 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, ")");
             break;
     }
+    //fprintf(fp, "\n");
 }
 
 void
