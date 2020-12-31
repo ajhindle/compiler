@@ -1,3 +1,12 @@
+/*
+ * Author   : ajhindle
+ * Date     : 25-11-2020
+ *
+ * File     : traverse.c
+ *
+ * This module provides 'higher order' procedures that traverse the AST.  
+*/
+
 #include <stdio.h>
 #include "ast.h"
 
@@ -5,8 +14,6 @@ extern void report_error_and_exit(const char *msg);
 
 void
 proc_prog(FILE *fp, void (*f)(FILE *, Program), Program prog) {
-
-    /* report_error_and_exit("Unable to pretty-proc"); */
 
     f(fp, prog);
 }

@@ -1,3 +1,12 @@
+/*
+ * Author   : ajhindle
+ * Date     : 25-11-2020
+ *
+ * File     : analyser.c
+ *
+ * This module runs semantic analysis over the AST.
+*/
+
 #include <stdio.h>
 #include "ast.h"
 #include "traverse.h"
@@ -242,6 +251,11 @@ analyse_expression(FILE *fp, Expr expr) {
     }
 }
 
+
+/*
+ * Determines the expression BINOP type based on what the two sub-expressions 
+ * are.
+ */
 void
 analyse_binop(FILE *fp, Expr expr) {
 
@@ -249,7 +263,6 @@ analyse_binop(FILE *fp, Expr expr) {
     analyse_expression(fp, expr->e2);
     if (expr->e1->e_type == INT && expr->e2->e_type == INT) {
         expr->e_type = INT;
-        //fprintf(fp, "Binop is type INT\n");
         fprintf(fp, "Line %d: '%s' is type %s\n", 
                 expr->e_lineno,
                 btypes[expr->e_binop],
@@ -257,7 +270,6 @@ analyse_binop(FILE *fp, Expr expr) {
     } 
     else {
         expr->e_type = FLOAT;
-        //fprintf(fp, "Binop is type FLOAT\n");
         fprintf(fp, "Line %d: '%s' is type %s\n", 
                 expr->e_lineno,
                 btypes[expr->e_binop],
@@ -267,6 +279,11 @@ analyse_binop(FILE *fp, Expr expr) {
 
 }
 
+
+/*
+ * Determines the BINOP 'argument' to be used later for three-address-code.
+ * This procedure somewhat does part of the code generator's job. 
+ */
 void
 set_op(FILE *fp, Expr expr) {
 

@@ -1,12 +1,13 @@
 /*
- * Username : ajh
+ * Author   : ajhindle
  * Date     : 27-09-2006
  *            25-11-2020
  *
  * File     : symbol.c
  *
- * This file contains functions which relate to manipulating the 
- * hash table
+ * This module contains functions which operate on the symbol table. 
+ * The symbol table is used for (quickly) looking up info on 
+ * variables, procedures, etc.
 */
 
 
@@ -16,57 +17,27 @@
 #include <assert.h>
 #include <errno.h>
 
+
 #include "symbol.h"
 #include "util.h"
 
-
-static int is_prime(int n); 
-
-
-
-/*
-** Return a pointer to the value associated with the specified key.
-** Note that before lookup any trailing newlines are stripped from 'key'.
-** Before returning this function sets the global variable 'number_of_lookups'
-** to the number of lookups that were required in searching for 'key' in
-** the hash table.
-*/
-
-
-
-/*
- * return a hash for a given key
-*/
+static BOOL is_prime(int n); 
 static int hash(char *key, int tsize);
 
 
-
-/*
-** Strip newlines from the end of a string.  Returns a 
-** pointer to the string (this is useful if you want to use
-** it in an expression).
-**
-** NOTE: this destructively updates the string so don't use
-** it on strings that are stored in read-only memory.
-*/
-
-/*
-** A safe string duplication function.  Aborts if memory
-** cannot be allocated for the duplicate.
-*/
-
-int 
+BOOL
 is_duplicate(int doc_ref, int *array, int size) {
 
     int i;
 
     for (i = 0; i < size; i++) {
         if ( doc_ref == array[i] )
-            return 1;
+            return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
+
 
 SymbolTbl 
 *st_init(size_t size) {
@@ -92,30 +63,17 @@ SymbolTbl
 
 }
 
-/*
-int *make_doc_array(int size) 
-{
-    int *result;
-
-    result = safe_malloc(sizeof(int)*size);
-
-    memset(result, -1, sizeof(int)*size);
-
-    return result;
-}
-*/
 
 SymbolTbl 
 *st_rehash(SymbolTbl *st) {
 
     SymbolTbl *newht;
 
-    int i = 0, newsize = 0, pos;
+    int i = 0, newsize = 0, pos = -1;
 
     newsize = next_prime(TBL_MULT * st->table_size);
     
     newht = st_init( newsize );
-
 
     for (i = 0; i < st->table_size; i++) {
         if ( st->s_items[i].key != NULL) {
@@ -138,14 +96,13 @@ SymbolTbl
     return newht;
 }
 
+
 void 
 st_free(SymbolTbl *st) {
     int i;
 
     for (i = 0; i < st->table_size; i++) {
         if (st->s_items[i].key != NULL) {
-            // free(ht->table[i].doc_array);
-            // ht->table[i].doc_array = NULL;
             free(st->s_items[i].key);
             st->s_items[i].key = NULL;
         }
@@ -156,26 +113,31 @@ st_free(SymbolTbl *st) {
     st = NULL;
 }
 
-/* Determine whether argument is prime. */
-int 
+
+/* 
+ * Determine whether given number is prime. 
+ */
+BOOL
 is_prime(int n) {
 
     int divisor;
     if (n < 2) {
-        return 0;
+        return FALSE;
     }
     for (divisor =2 ; divisor * divisor <= n; divisor++) {
         if (n % divisor == 0) {
             /* factor found, so can't be prime */
-            return 0;
+            return FALSE;
         }
     }
     /* no factors, so must be prime */
-    return 1;
+    return TRUE;
 }
 
 
-/* Find the next prime after n */
+/* 
+ * Find the next prime after n 
+ */
 int 
 next_prime(int n) {
 
@@ -188,6 +150,9 @@ next_prime(int n) {
 }
 
 
+/*
+ * return a hash for a given key
+*/
 int 
 hash(char *key, int tsize) {
 
@@ -246,8 +211,8 @@ st_lookup(SymbolTbl *st, char *key) {
    }
 
    return -1;
-
 }
+
 
 void
 st_dump(SymbolTbl *st)
@@ -261,14 +226,9 @@ st_dump(SymbolTbl *st)
         if (st->s_items[i].key != NULL) {
             h = hash( st->s_items[i].key , st->table_size);
             printf("%d : %d : %s\n", i, h, st->s_items[i].key);
-            //printf("%d,", st->table[i].num_doc);
-
-            //for(j = 0; j < st->table[i].num_doc; j++)
-            //    printf("%d,", ht->table[i].doc_array[j]);
-
         }
     
     }
-    printf("number of items: %d\n", st->num_items);
-    printf("size of table: %d\n", st->table_size);
+    printf("Number of items: %d\n", st->num_items);
+    printf("Size of table: %d\n", st->table_size);
 }

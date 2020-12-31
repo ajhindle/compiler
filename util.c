@@ -1,3 +1,12 @@
+/*
+ * Author   : ajhindle
+ * Date     : 25-11-2020
+ *
+ * File     : util.c
+ *
+ * This module provides several utility functions.
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,6 +46,15 @@ void
 	return mem;
 }
 
+
+/*
+** Strip newlines from the end of a string.  Returns a 
+** pointer to the string (this is useful if you want to use
+** it in an expression).
+**
+** NOTE: this destructively updates the string so don't use
+** it on strings that are stored in read-only memory.
+*/
 char 
 *chomp(char *str) {
 
@@ -50,6 +68,11 @@ char
 	return str;
 }
 
+
+/*
+** A safe string duplication function.  Aborts if memory
+** cannot be allocated for the duplicate.
+*/
 char 
 *safe_strdup(const char *str) {
 

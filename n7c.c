@@ -4,7 +4,7 @@
     A driver for a parser and pretty-printer for n7, for use in 
     433-361 asg 1, 2007.
     Harald Sondergaard, August 2007.
-    ajh3000, July 2020.
+    ajhindle, July 2020.
 ---------------------------------------------------------------------------*/
 
 #include    <string.h>

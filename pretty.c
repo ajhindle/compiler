@@ -1,3 +1,13 @@
+/*
+ * Author   : ajhindle
+ * Date     : 25-11-2020
+ *
+ * File     : pretty.c
+ *
+ * This module provides procedures that traverse the AST and pretty prints 
+ * the program.
+*/
+
 #include <stdio.h>
 #include "ast.h"
 #include "traverse.h"
@@ -19,12 +29,15 @@ void print_statement(FILE *fp, Stmt stmt);
 void print_expressions(FILE *fp, Exprs exprs);
 void print_expression(FILE *fp, Expr expr);
 void indent_here(FILE *fp);
+void block_handler(FILE *fp, Stmt stmt);
 
-// number of spaces to indent with
+// Number of spaces to indent with
 const static int indent = 4;
 
-// point on line (column) to start writing
+// Point on line (column) to start writing
 static int write_pt = 0;
+
+static BOOL brace_on_newline = TRUE;
 
 void
 pretty_prog(FILE *fp, Program prog) {
@@ -46,10 +59,7 @@ print_proc(FILE *fp, Proc proc) {
     if(proc->p_decls != NULL)
         proc_decls(fp, print_decl, proc->p_decls);
 
-    
     proc_statements(fp, print_statements, proc->p_body);
-
-
 
     fprintf(fp, "\n"); 
     indent_here(fp);
@@ -97,6 +107,7 @@ print_params(FILE *fp, Params params) {
     }
 }
 
+
 void
 print_decl(FILE *fp, Decl decl) {
 
@@ -104,6 +115,7 @@ print_decl(FILE *fp, Decl decl) {
     print_varnames(fp, decl->d_varnames);
     fprintf(fp, ";\n");
 }
+
 
 void
 print_varnames(FILE *fp, VarNames varnames) {
@@ -115,6 +127,7 @@ print_varnames(FILE *fp, VarNames varnames) {
         print_varnames(fp, varnames->v_rest);
     }
 }
+
 
 void
 print_type(FILE *fp, VType type) {
@@ -128,6 +141,7 @@ print_type(FILE *fp, VType type) {
     }
 }
 
+
 void
 print_statements(FILE *fp, Stmts stmts) {
 
@@ -139,30 +153,61 @@ print_statements(FILE *fp, Stmts stmts) {
         fprintf(fp, ";\n");
 }
 
+
+/*
+ * Writes spaces to indent lines of the pretty-printed program.
+ */
 void
 indent_here(FILE *fp) {
     int i;
     //fprintf(fp, "%*s", write_pt, " ");
-    //fprintf(fp, "Number of spaces to write: %d\n", write_pt);
+    //TODO use conditional debugging to turn this line on/off
     fprintf(fp, "%d", write_pt);
     for (i = 0; i < write_pt; i++)
-        putc(32, fp);
+        putc((int)' ', fp);
 }
+
+
+/* 
+ * This procedure is used for body statements of while-loops, for-loops and 
+ * if-then-else.  If the body is a block of statements, the brace must appear 
+ * on the same line as e.g. the 'else' keyword.  If body is not a block then 
+ * just indent it.
+ */
+void
+block_handler(FILE *fp, Stmt stmt) {
+
+    if (stmt->s_kind == STMT_BLOCK) {
+        fprintf(fp, "{\n");
+        brace_on_newline = FALSE;
+        proc_statement(fp, print_statement, stmt);
+        brace_on_newline = TRUE;
+    }
+    else {
+        fprintf(fp, "\n");
+        write_pt += indent;
+        proc_statement(fp, print_statement, stmt);
+        write_pt -= indent;
+    }
+}
+
 
 void
 print_statement(FILE *fp, Stmt stmt) {
 
     SKind   s_kind = stmt->s_kind;
-            
-    indent_here(fp);
 
     switch (s_kind) {
         case STMT_ASSIGN:
+            indent_here(fp);
             fprintf(fp, "%s := ", stmt->s_info.s_assign.asg_id);
             proc_expression(fp, print_expression, stmt->s_info.s_assign.asg_expr);
             break;
         case STMT_BLOCK:
-            fprintf(fp, "{\n");
+            if (brace_on_newline == TRUE) {
+                indent_here(fp);
+                fprintf(fp, "{\n");
+            }
             write_pt += indent;
             proc_statements(fp, print_statements, stmt->s_info.s_block);
             write_pt -= indent;
@@ -171,42 +216,57 @@ print_statement(FILE *fp, Stmt stmt) {
             fprintf(fp, "}");
             break;
         case STMT_COND:
+            indent_here(fp);
             fprintf(fp, "%s ", "if");
             proc_expression(fp, print_expression, stmt->s_info.s_cond.if_cond);
             fprintf(fp, " %s ", "then");
+            /*
             fprintf(fp, "%s", "\n");
             write_pt += indent;
             proc_statement(fp, print_statement, stmt->s_info.s_cond.if_then);
             write_pt -= indent;
+            */
+            block_handler(fp, stmt->s_info.s_cond.if_then);
             fprintf(fp, "%s", "\n");
             indent_here(fp);
-            fprintf(fp, "%s", "else");
+            fprintf(fp, "%s", "else ");
+            block_handler(fp, stmt->s_info.s_cond.if_else);
+            /*
             fprintf(fp, "%s", "\n");
             write_pt += indent;
             proc_statement(fp, print_statement, stmt->s_info.s_cond.if_else);
             write_pt -= indent;
+            */
             break;
         case STMT_READ:
+            indent_here(fp);
             fprintf(fp, "%s ", "read");
             fprintf(fp, "%s", stmt->s_info.s_read);
             break;
         case STMT_SKIP:
+            indent_here(fp);
             fprintf(fp, "%s", "skip");
             break;
         case STMT_WHILE:
+            indent_here(fp);
             fprintf(fp, "%s ", "while");
             proc_expression(fp, print_expression, stmt->s_info.s_while.while_cond);
             fprintf(fp, " %s ", "do");
+            block_handler(fp, stmt->s_info.s_while.while_body);
+            /*
             fprintf(fp, " %s", "\n");
             write_pt += indent;
             proc_statement(fp, print_statement, stmt->s_info.s_while.while_body);
             write_pt -= indent;
+            */
             break;
         case STMT_WRITE:
+            indent_here(fp);
             fprintf(fp, "%s ", "write");
             proc_expression(fp, print_expression, stmt->s_info.s_write);
             break;
         case STMT_FOR:
+            indent_here(fp);
             fprintf(fp, "%s ", "for");
             fprintf(fp, "%s ", stmt->s_info.s_for.for_id);
             proc_expression(fp, print_expression, stmt->s_info.s_for.for_from_expr);
@@ -215,13 +275,14 @@ print_statement(FILE *fp, Stmt stmt) {
             proc_statement(fp, print_statement, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
+            indent_here(fp);
             fprintf(fp, "%s(", stmt->s_info.s_call.call_id);
             proc_expressions(fp, print_expressions, stmt->s_info.s_call.s_exprs);
             fprintf(fp, ")");
             break;
     }
-    //fprintf(fp, "\n");
 }
+
 
 void
 print_expressions(FILE *fp, Exprs exprs) {
@@ -233,6 +294,7 @@ print_expressions(FILE *fp, Exprs exprs) {
         print_expressions(fp, exprs->e_rest);
     }
 }
+
 
 void
 print_expression(FILE *fp, Expr expr) {
@@ -266,7 +328,6 @@ print_expression(FILE *fp, Expr expr) {
                 fprintf(fp, " %s ", binopname[expr->e_binop]);
                 proc_expression(fp, print_expression, expr->e2);
             }
-
             break;
         case EXPR_UNOP:
             fprintf(fp, " %s", unopname[expr->e_unop]);

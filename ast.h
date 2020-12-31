@@ -4,6 +4,7 @@
     Definitions for the abstract syntax trees generated for n7 programs.
     For use in 433-361 asg 1, 2007.
     Harald Sondergaard, August 2007.
+    ajhindle, November 2020.
 ---------------------------------------------------------------------------*/
 
 
@@ -241,7 +242,6 @@ struct s_stmt {
     SKind   s_kind;
     SInfo   s_info;
     Instr   s_code;
-    SymbolTbl   *s_st;
 };
 
 struct s_stmts {

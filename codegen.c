@@ -1,9 +1,18 @@
+/*
+ * Author   : ajhindle
+ * Date     : 25-11-2020
+ *
+ * File     : codegen.c
+ *
+ * This module provides procedures that translate the input program into 
+ * intermediate instructions (IR).  
+*/
+
+
 #include <stdio.h>
 #include "ast.h"
 #include "util.h"
 #include "traverse.h"
-
-/* #extern void report_error_and_exit(const char *msg); */
 
 
 void gen_proc(FILE *fp, Proc proc);
@@ -111,6 +120,9 @@ gen_statements(FILE *fp, Stmts stmts) {
     }
 }
 
+/*
+ * Prints 'three address code' 
+ */
 void
 print_instruction(FILE *fp, Instr instr) {
 
@@ -142,6 +154,7 @@ print_instr_arg(FILE *fp, Arg arg) {
     }
 }
 
+
 void
 get_nextplace(Arg arg, AType a_type) {
 
@@ -161,6 +174,7 @@ get_nextplace(Arg arg, AType a_type) {
             break;
     }
 }
+
 
 void
 gen_statement(FILE *fp, Stmt stmt) {
