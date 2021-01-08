@@ -74,6 +74,8 @@ analyse_proc(FILE *fp, Proc proc) {
     
     proc_statements(fp, analyse_statements, proc->p_body);
 
+    proc->p_slot_ct = slot_ct;
+
     frame = pop(stack);
     st_dump(frame->st);
 }

@@ -54,12 +54,12 @@ typedef enum {
     ">", ">=", "or", "and"
 
 #define CG_BINOP_INT "add_int", "sub_int", "mul_int", "div_int", \
-"cmp_eq_int", "cmp_ne_int", "cmp_lt_int", "cmp_le_int", \
-"cmp_gt_int", "cmp_ge_int", "and", "or" 
+    "cmp_eq_int", "cmp_ne_int", "cmp_lt_int", "cmp_le_int", \
+    "cmp_gt_int", "cmp_ge_int", "and", "or" 
 
 #define CG_BINOP_REAL "add_real", "sub_real", "mul_real", "div_real", \
-"cmp_eq_real", "cmp_ne_real", "cmp_lt_real", "cmp_le_real", \
-"cmp_gt_real", "cmp_ge_real", "and", "or" 
+    "cmp_eq_real", "cmp_ne_real", "cmp_lt_real", "cmp_le_real", \
+    "cmp_gt_real", "cmp_ge_real", "and", "or" 
 
 #define VTYPE "INT", "FLOAT"
 
@@ -69,7 +69,8 @@ typedef enum {
     UNOP_MINUS, UNOP_NOT
 } UnOp;
 
-#define UNOP_NAMES "-", "not"
+#define UNOP_NAMES \
+    "-", "not"
 
 extern const char *unopname[];
 
@@ -122,20 +123,20 @@ typedef enum {
 } Op;
 
 #define INSTR_OPNAMES \
-"add_int", "add_real",  "sub_int", "sub_real", \
-"mul_int", "mul_real", "div_int", "div_real", \
-"cmp_eq_int", "cmp_ne_int", "cmp_gt_int", "cmp_ge_int", \
-"cmp_lt_int", "cmp_le_int", "cmp_eq_real", "cmp_ne_real", \
-"cmp_gt_real", "cmp_ge_real", "cmp_lt_real", "cmp_le_real", \
-"and", "or", "not", \
-"int_to_real", "move", \
-"push_stack_frame", "pop_stack_frame", \
-"load", "store", "load_address", "load_indirect", "store_indirect", \
-"int_const", "real_const", "string_const", \
-"call", "call_builtin", "return", \
-"branch_on_true", "branch_on_false", "branch_uncond", \
-"debug_reg", "debug_slot", "debug_stack", \
-"halt"
+    "add_int", "add_real",  "sub_int", "sub_real", \
+    "mul_int", "mul_real", "div_int", "div_real", \
+    "cmp_eq_int", "cmp_ne_int", "cmp_gt_int", "cmp_ge_int", \
+    "cmp_lt_int", "cmp_le_int", "cmp_eq_real", "cmp_ne_real", \
+    "cmp_gt_real", "cmp_ge_real", "cmp_lt_real", "cmp_le_real", \
+    "and", "or", "not", \
+    "int_to_real", "move", \
+    "push_stack_frame", "pop_stack_frame", \
+    "load", "store", "load_address", "load_indirect", "store_indirect", \
+    "int_const", "real_const", "string_const", \
+    "call", "call_builtin", "return", \
+    "branch_on_true", "branch_on_false", "branch_uncond", \
+    "debug_reg", "debug_slot", "debug_stack", \
+    "halt"
 
 typedef enum {
     PRINT_INT, PRINT_REAL, PRINT_STRING, 
@@ -209,7 +210,7 @@ struct s_exprs {
 typedef struct {
     char    *asg_id;
     Expr    asg_expr;
-    Arg     stack_slot;
+    //Arg     stack_slot;
 } Assign;
 
 typedef struct {
@@ -224,15 +225,15 @@ typedef struct {
 } While;
 
 typedef struct {
-	char	*for_id;
-	Expr	for_from_expr;
-	Expr	for_to_expr;
-	Stmt	for_body;
+    char    *for_id;
+    Expr    for_from_expr;
+    Expr    for_to_expr;
+    Stmt    for_body;
 } For;
 
 typedef struct {
-	char	*call_id;
-	Exprs	s_exprs;
+    char    *call_id;
+    Exprs   s_exprs;
 } Call;
 
 typedef union {

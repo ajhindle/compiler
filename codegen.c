@@ -37,6 +37,8 @@ const char      *builtin_names[] = {BUILTIN_NAMES};
 void
 gen_prog(FILE *fp, Program prog) {
 
+    fprintf(fp, "    call proc_main\n");
+    fprintf(fp, "    halt\n");
     stack = stack_init();
     proc_procs(fp, gen_proc, prog->procs);
 }
@@ -44,7 +46,7 @@ gen_prog(FILE *fp, Program prog) {
 void
 gen_proc(FILE *fp, Proc proc) {
 
-    int slot_ct = proc->p_param_ct + proc->p_var_ct;
+    //int slot_ct = proc->p_param_ct + proc->p_var_ct;
     
     curr_reg = 0;
     curr_slot = 0;
@@ -53,15 +55,15 @@ gen_proc(FILE *fp, Proc proc) {
     stack->top->st = proc->p_st;
 
     fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
-    fprintf(fp, "    push_stack_frame %d\n", slot_ct);
+    fprintf(fp, "    push_stack_frame %d\n", proc->p_slot_ct);
     proc_header(fp, gen_header, proc->p_header);
 
     if(proc->p_decls != NULL)
         proc_decls(fp, gen_decl, proc->p_decls);
     
-    proc_statements(fp, gen_statements, proc->p_body);
+    gen_statements(fp, proc->p_body);
     
-    fprintf(fp, "    pop_stack_frame %d\n", slot_ct);
+    fprintf(fp, "    pop_stack_frame %d\n", proc->p_slot_ct);
     fprintf(fp, "    return\n" );
     
     frame = pop(stack);
@@ -104,19 +106,32 @@ gen_decl(FILE *fp, Decl decl) {
 void
 gen_varname(FILE *fp, VarName varname) {
 
-    Instr v_code = varname->v_code;
+    Instr   v_code = varname->v_code;
+    int     pos;
 
-    //TODO initiate vars with 0
-    
-    v_code->op = STORE;
-    get_nextplace(v_code->arg1, SLOT);
-    get_nextplace(v_code->arg2, REG);
+    //TODO handle other types
+    pos = st_lookup(stack->top->st, varname->v_id);
+    varname->v_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+    varname->v_code->arg1->a_type = SLOT;
+
 
     fprintf(fp, "# variable %s is in stack slot %d\n", 
             varname->v_id, v_code->arg1->a_val);
 
-    print_instruction(fp, varname->v_code);
+    v_code->op = INT_CONST;
+    get_nextplace(v_code->arg1, REG);
+    v_code->arg2->a_type = INTCONST;
+    v_code->arg2->a_val = 0;
 
+    print_instruction(fp, varname->v_code);
+    
+    v_code->op = STORE;
+    v_code->arg2->a_val = v_code->arg1->a_val;
+    v_code->arg2->a_type = REG;
+    v_code->arg1->a_type = SLOT;
+    v_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+
+    print_instruction(fp, varname->v_code);
 }
 
 void
@@ -126,8 +141,9 @@ gen_statements(FILE *fp, Stmts stmts) {
         proc_statement(fp, gen_statement, stmts->s_first); 
     }
 
+    // TODO is this line causing an extra line to be written?
     if (stmts->s_rest != NULL) {
-        proc_statements(fp, gen_statements, stmts->s_rest); 
+        gen_statements(fp, stmts->s_rest); 
     }
 }
 
@@ -255,7 +271,6 @@ gen_statement(FILE *fp, Stmt stmt) {
             // set the slot of the inner expression
             // get_nextplace(stmt->s_info.s_write.stack_slot, SLOT); 
             gen_expression(fp, stmt->s_info.s_write);
-
             
             curr_reg = 0;
             
@@ -292,14 +307,20 @@ gen_expressions(FILE *fp, Exprs exprs) {
 void
 gen_expression(FILE *fp, Expr expr) {
 
-    EKind e_kind = expr->e_kind;
+    EKind   e_kind = expr->e_kind;
+    int     pos;
 
     switch (e_kind) {
         case EXPR_ID:
             expr->e_code->op = LOAD;
-            // TODO get id.stackslot
             expr->e_code->arg1 = expr->e_place;
-            get_nextplace(expr->e_code->arg2, SLOT);
+            pos = st_lookup(stack->top->st, expr->e_id);
+            expr->e_code->arg2->a_val = stack->top->st->s_items[pos].stack_slot;
+            expr->e_code->arg2->a_type = SLOT;
+
+            //get_nextplace(expr->e_code->arg2, SLOT);
+            // get the correct "slot"
+
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_INTCONST:
