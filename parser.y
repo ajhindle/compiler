@@ -344,6 +344,7 @@ statement
     | start_write expression 
         {
           $$ = allocate(sizeof(struct s_stmt));
+          $$->s_code = alloc_code(1);
           $$->s_lineno = $1;
           $$->s_kind = STMT_WRITE;
           $$->s_info.s_write = $2;

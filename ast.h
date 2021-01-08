@@ -16,10 +16,10 @@
 
 typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
-typedef struct s_varname    *VarName;
+typedef struct s_varname	*VarName;
 typedef struct s_varnames 	*VarNames;
-typedef struct s_param      *Param;
-typedef struct s_params     *Params;
+typedef struct s_param		*Param;
+typedef struct s_params		*Params;
 typedef struct s_expr   	*Expr;
 typedef struct s_exprs		*Exprs;
 typedef struct s_stmts  	*Stmts;
@@ -35,8 +35,8 @@ typedef	struct s_arg		*Arg;
 
 typedef enum {
     BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, 
-	BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
-	BINOP_OR, BINOP_AND
+    BINOP_EQ, BINOP_NE, BINOP_LT, BINOP_LE, BINOP_GT, BINOP_GE,
+    BINOP_OR, BINOP_AND
 } BinOp;
 
 /* typedef enum {
@@ -78,15 +78,15 @@ typedef enum {
 } EKind;
 
 typedef enum {
-	VAL, REF, VALRES
+    VAL, REF, VALRES
 } PKind;
 
 typedef enum {
-	INT, FLOAT
+    INT, FLOAT
 } VType;
 
 typedef enum {
-	REG, SLOT, INTCONST, REALCONST
+    REG, SLOT, INTCONST, REALCONST, BUILTIN
 } AType;
 
 struct s_expr {
@@ -94,7 +94,7 @@ struct s_expr {
     EKind   e_kind;
     char    *e_id;      /* for ID */
     int     e_intval;   /* for integer values */
-	float	e_fltval;	/* for float values */
+    float   e_fltval;   /* for float values */
     UnOp    e_unop;     /* for UNOP */
     BinOp   e_binop;    /* for BINOP */
     Expr    e1;         /* for UNOP and BINOP */
@@ -137,10 +137,20 @@ typedef enum {
 "debug_reg", "debug_slot", "debug_stack", \
 "halt"
 
+typedef enum {
+    PRINT_INT, PRINT_REAL, PRINT_STRING, 
+    READ_INT, READ_REAL, READ_STRING
+} Builtins;
+
+#define BUILTIN_NAMES \
+    "print_int", "print_real", "print_string", "read_int", \
+    "read_real", "read_string"
+
 extern const char *instr_opnames[];
 
 struct s_instr {
     Op      op;
+    int     num_args;
     Arg     arg1;   
     Arg     arg2;
     Arg     arg3;
@@ -153,21 +163,21 @@ struct s_arg {
 };
 
 struct s_param {
-	int		d_lineno;
-	PKind	d_kind;
-	VType	d_type;
-	char    *d_id;
+    int     d_lineno;
+    PKind   d_kind;
+    VType   d_type;
+    char    *d_id;
     Instr   p_code;
 };
 
 struct s_params {
-	Param   p_first;
-	Params  p_rest;
+    Param   p_first;
+    Params  p_rest;
 };
 
 struct s_decl {
     int         d_lineno;
-	VType	    d_type;
+    VType       d_type;
     VarNames    d_varnames;
 };
 
@@ -192,8 +202,8 @@ typedef enum {
 } SKind;
 
 struct s_exprs {
-	Expr	e_first;
-	Exprs	e_rest;
+    Expr    e_first;
+    Exprs   e_rest;
 };
 
 typedef struct {
@@ -233,8 +243,8 @@ typedef union {
     Expr    s_skip;
     Expr    s_write;
     While   s_while;
-	For		s_for;
-	Call	s_call;
+    For     s_for;
+    Call    s_call;
 } SInfo;
 
 struct s_stmt {
@@ -251,27 +261,28 @@ struct s_stmts {
 
 struct s_prog {
     Procs   procs;
-    SymbolTbl   *p_st;
+    SymbolTbl   *prog_st;
 };
 
 struct s_header {
-	char	*h_id;
-	Params  h_params;
+    char    *h_id;
+    Params  h_params;
 };
 
 struct s_proc {
-    int     p_main;				/* indicates a main() procedure */
+    int     p_main;     /* indicates a main() procedure */
     Header  p_header;
     Decls   p_decls;
     Stmts   p_body;
     int     p_param_ct;
     int     p_var_ct;
+    int     p_slot_ct;
     SymbolTbl   *p_st;
 };
 
 struct s_procs {
-	Proc	p_first;
-	Procs	p_rest;
+    Proc    p_first;
+    Procs   p_rest;
 };
 
 Instr alloc_code(int num_args);

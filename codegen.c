@@ -13,6 +13,7 @@
 #include "ast.h"
 #include "util.h"
 #include "traverse.h"
+#include "stack.h"
 
 
 void gen_proc(FILE *fp, Proc proc);
@@ -28,12 +29,15 @@ void print_instruction(FILE *fp, Instr instr);
 void print_instr_arg(FILE *fp, Arg arg); 
 void get_nextplace(Arg arg, AType a_type);
 
-int curr_reg;
-int curr_slot;
+static int      curr_reg;
+static int      curr_slot;
+static Stack    stack; 
+const char      *builtin_names[] = {BUILTIN_NAMES};
 
 void
 gen_prog(FILE *fp, Program prog) {
 
+    stack = stack_init();
     proc_procs(fp, gen_proc, prog->procs);
 }
 
@@ -44,6 +48,9 @@ gen_proc(FILE *fp, Proc proc) {
     
     curr_reg = 0;
     curr_slot = 0;
+
+    Frame frame = push(stack);
+    stack->top->st = proc->p_st;
 
     fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", slot_ct);
@@ -56,6 +63,8 @@ gen_proc(FILE *fp, Proc proc) {
     
     fprintf(fp, "    pop_stack_frame %d\n", slot_ct);
     fprintf(fp, "    return\n" );
+    
+    frame = pop(stack);
 
 }
 
@@ -96,12 +105,14 @@ void
 gen_varname(FILE *fp, VarName varname) {
 
     Instr v_code = varname->v_code;
+
+    //TODO initiate vars with 0
     
     v_code->op = STORE;
     get_nextplace(v_code->arg1, SLOT);
     get_nextplace(v_code->arg2, REG);
 
-    fprintf(fp, "# argument %s is in stack slot %d\n", 
+    fprintf(fp, "# variable %s is in stack slot %d\n", 
             varname->v_id, v_code->arg1->a_val);
 
     print_instruction(fp, varname->v_code);
@@ -129,10 +140,16 @@ print_instruction(FILE *fp, Instr instr) {
     const char *instr_opnames[] = {INSTR_OPNAMES};
     
     fprintf(fp, "    %s ", instr_opnames[instr->op]);
-    if (instr->arg1 != NULL) print_instr_arg(fp, instr->arg1);
-    if (instr->arg2 != NULL) print_instr_arg(fp, instr->arg2);
-    if (instr->arg3 != NULL)    //valgrind doesn't like this 
+    if (instr->num_args >= 1) 
+        print_instr_arg(fp, instr->arg1);
+    if (instr->num_args >= 2) {
+        fprintf(fp, ", ");
+        print_instr_arg(fp, instr->arg2);
+    }
+    if (instr->num_args >= 3) {
+        fprintf(fp, ", ");
         print_instr_arg(fp, instr->arg3);
+    }
     fprintf(fp, "\n");
 }
 
@@ -140,16 +157,19 @@ void
 print_instr_arg(FILE *fp, Arg arg) {
     switch (arg->a_type) {
         case REG:
-            fprintf(fp, "r%d ", arg->a_val);
+            fprintf(fp, "r%d", arg->a_val);
             break;
         case SLOT:
-            fprintf(fp, "%d ", arg->a_val);
+            fprintf(fp, "%d", arg->a_val);
             break;
         case INTCONST:
-            fprintf(fp, "%d ", arg->a_val);
+            fprintf(fp, "%d", arg->a_val);
             break;
         case REALCONST:
-            fprintf(fp, "%.5f ", arg->a_fltval);
+            fprintf(fp, "%.5f", arg->a_fltval);
+            break;
+        case BUILTIN:
+            fprintf(fp, "%s", builtin_names[arg->a_val]);
             break;
     }
 }
@@ -179,23 +199,28 @@ get_nextplace(Arg arg, AType a_type) {
 void
 gen_statement(FILE *fp, Stmt stmt) {
 
-    SKind s_kind = stmt->s_kind;
+    int     pos;
+    SKind   s_kind = stmt->s_kind;
 
     switch (s_kind) {
         case STMT_ASSIGN:
             fprintf(fp, "# assignment\n"); 
             stmt->s_info.s_assign.asg_expr->e_place = allocate(sizeof(struct 
                         s_arg));
-            stmt->s_info.s_assign.stack_slot = allocate(sizeof(struct s_arg));
             curr_reg = 0;
-            // TODO get the correct "slot"
-            // TODO get the "place" (reg) of the expression
-            get_nextplace(stmt->s_info.s_assign.asg_expr->e_place, REG);
-            get_nextplace(stmt->s_info.s_assign.stack_slot, SLOT); 
-            gen_expression(fp, stmt->s_info.s_assign.asg_expr); 
+            
             stmt->s_code->op = STORE;
-            stmt->s_code->arg1 = stmt->s_info.s_assign.stack_slot;
+            
+            // get the correct "slot"
+            pos = st_lookup(stack->top->st, stmt->s_info.s_assign.asg_id);
+            stmt->s_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+            stmt->s_code->arg1->a_type = SLOT;
+
+            // get the "place" (reg) of the expression
+            get_nextplace(stmt->s_info.s_assign.asg_expr->e_place, REG);
+            gen_expression(fp, stmt->s_info.s_assign.asg_expr); 
             stmt->s_code->arg2 = stmt->s_info.s_assign.asg_expr->e_place;
+
             print_instruction(fp, stmt->s_code);
             break;
         case STMT_BLOCK:
@@ -220,8 +245,25 @@ gen_statement(FILE *fp, Stmt stmt) {
             gen_statement(fp, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
-            //TODO
+            // TODO handle strings and reals too
+            fprintf(fp, "# write\n"); 
+            stmt->s_info.s_write->e_place = allocate(sizeof(struct s_arg));
+            //stmt->s_code = allocate(sizeof(struct s_arg));
+            curr_reg = 0;
+            // set the place of the inner expression
+            get_nextplace(stmt->s_info.s_write->e_place, REG);
+            // set the slot of the inner expression
+            // get_nextplace(stmt->s_info.s_write.stack_slot, SLOT); 
             gen_expression(fp, stmt->s_info.s_write);
+
+            
+            curr_reg = 0;
+            
+            stmt->s_code->op = CALL_BUILTIN;
+            stmt->s_code->arg1->a_type = BUILTIN;
+            stmt->s_code->arg1->a_val = PRINT_INT;
+            print_instruction(fp, stmt->s_code);
+
             break;
         case STMT_FOR:
             //TODO

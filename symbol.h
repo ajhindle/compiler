@@ -15,7 +15,7 @@
 typedef struct {
 	char        *key;
     int         type;
-    //int         array_size;
+    int         stack_slot;
 } TblEntry;
 
 /*

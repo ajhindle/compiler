@@ -15,7 +15,7 @@ struct s_stack {
 
 
 struct s_frame {
-	SymbolTbl   *st;
+	SymbolTbl   *st;            //TODO change this to point to proc
     int         my_number;      //for testing
     Frame       next;
 };

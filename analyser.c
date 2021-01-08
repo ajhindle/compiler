@@ -31,6 +31,7 @@ void set_op(FILE *fp, Expr expr);
 
 static int         param_ct;
 static int         var_ct;
+static int         slot_ct;
 static SymbolTbl   *prog_st;
 static Stack       stack; 
 
@@ -41,21 +42,25 @@ void
 analyse_prog(FILE *fp, Program prog) {
 
     prog_st = st_init(31);
-    prog->p_st = prog_st;
+    prog->prog_st = prog_st;
 
     stack = stack_init();
 
     proc_procs(fp, analyse_proc, prog->procs);
+
+    st_dump(prog->prog_st);
 }
 
 void
 analyse_proc(FILE *fp, Proc proc) {
 
+    slot_ct = 0;
     param_ct = 0;
     var_ct = 0;
 
     Frame frame = push(stack);
     frame->st = st_init(31);
+    proc->p_st = frame->st;
 
     proc_header(fp, analyse_header, proc->p_header);
     
@@ -102,8 +107,10 @@ analyse_params(FILE *fp, Params params) {
     pos = st_insert(stack->top->st, param->d_id);
     //add the type to symbol table too
     stack->top->st->s_items[pos].type = param->d_type;
+    stack->top->st->s_items[pos].stack_slot = slot_ct;
     //decl: d_type
     //proc: no type
+    slot_ct = slot_ct + 1;
 
     analyse_type(fp, param->d_type);
 
@@ -131,6 +138,8 @@ analyse_varnames(FILE *fp, VType type, VarNames varnames) {
     pos = st_insert(stack->top->st, varname->v_id);
     //add the type to symbol table too
     stack->top->st->s_items[pos].type = type;
+    stack->top->st->s_items[pos].stack_slot = slot_ct;
+    slot_ct = slot_ct + 1;
 
     if (varnames->v_rest != NULL) 
         analyse_varnames(fp, type, varnames->v_rest);
