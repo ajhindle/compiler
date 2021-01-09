@@ -63,6 +63,8 @@ typedef enum {
 
 #define VTYPE "INT", "FLOAT"
 
+#define ETYPE "INT", "FLOAT", "STRING"
+
 extern const char *binopname[];
 
 typedef enum {
@@ -74,20 +76,29 @@ typedef enum {
 
 extern const char *unopname[];
 
+/* The kind of expression (not the type) */
 typedef enum {
-    EXPR_ID, EXPR_INTCONST, EXPR_FLTCONST, EXPR_BINOP, EXPR_UNOP
+    EXPR_ID, EXPR_INTCONST, EXPR_FLTCONST, EXPR_BINOP, EXPR_UNOP, EXPR_STRCONST
 } EKind;
 
+/* The kind of the parameter */
 typedef enum {
     VAL, REF, VALRES
 } PKind;
 
+/* The type of the variable or parameter */
 typedef enum {
     INT, FLOAT
 } VType;
 
+/* The type of the expression */
 typedef enum {
-    REG, SLOT, INTCONST, REALCONST, BUILTIN
+    E_TYPE_INT, E_TYPE_FLOAT, E_TYPE_STRING
+} EType;
+
+/* The type of the argument in the instructions for target language */
+typedef enum {
+    REG, SLOT, INTCONST, REALCONST, BUILTIN, STRCONST
 } AType;
 
 struct s_expr {
@@ -102,7 +113,7 @@ struct s_expr {
     Expr    e2;         /* for BINOP */
     Instr   e_code;     /* code generation instruction */
     Arg     e_place;    /* code generation place (register) */
-    VType   e_type;     /* expression type */
+    EType   e_type;     /* expression type */
 };
 
 typedef enum {
@@ -161,6 +172,7 @@ struct s_arg {
     AType   a_type;
     int     a_val;
     float   a_fltval;
+    char    *a_strval;
 };
 
 struct s_param {

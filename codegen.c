@@ -184,6 +184,9 @@ print_instr_arg(FILE *fp, Arg arg) {
         case REALCONST:
             fprintf(fp, "%.5f", arg->a_fltval);
             break;
+        case STRCONST:
+            fprintf(fp, "%s", arg->a_strval);
+            break;
         case BUILTIN:
             fprintf(fp, "%s", builtin_names[arg->a_val]);
             break;
@@ -261,22 +264,31 @@ gen_statement(FILE *fp, Stmt stmt) {
             gen_statement(fp, stmt->s_info.s_while.while_body);
             break;
         case STMT_WRITE:
-            // TODO handle strings and reals too
             fprintf(fp, "# write\n"); 
             stmt->s_info.s_write->e_place = allocate(sizeof(struct s_arg));
-            //stmt->s_code = allocate(sizeof(struct s_arg));
             curr_reg = 0;
             // set the place of the inner expression
             get_nextplace(stmt->s_info.s_write->e_place, REG);
             // set the slot of the inner expression
-            // get_nextplace(stmt->s_info.s_write.stack_slot, SLOT); 
             gen_expression(fp, stmt->s_info.s_write);
             
             curr_reg = 0;
             
             stmt->s_code->op = CALL_BUILTIN;
             stmt->s_code->arg1->a_type = BUILTIN;
-            stmt->s_code->arg1->a_val = PRINT_INT;
+
+            switch (stmt->s_info.s_write->e_type) {
+                case E_TYPE_INT:
+                    stmt->s_code->arg1->a_val = PRINT_INT;
+                    break;
+                case E_TYPE_FLOAT:
+                    stmt->s_code->arg1->a_val = PRINT_REAL;
+                    break;
+                case E_TYPE_STRING:
+                    stmt->s_code->arg1->a_val = PRINT_STRING;
+                    break;
+            }
+
             print_instruction(fp, stmt->s_code);
 
             break;
@@ -332,10 +344,16 @@ gen_expression(FILE *fp, Expr expr) {
             break;
         case EXPR_FLTCONST:
             expr->e_code->op = REAL_CONST;
-            get_nextplace(expr->e_place, REG);
             expr->e_code->arg1 = expr->e_place;
             expr->e_code->arg2->a_type = REALCONST;
             expr->e_code->arg2->a_fltval = expr->e_fltval;
+            print_instruction(fp, expr->e_code);
+            break;
+        case EXPR_STRCONST:
+            expr->e_code->op = STRING_CONST;
+            expr->e_code->arg1 = expr->e_place;
+            expr->e_code->arg2->a_type = STRCONST;
+            expr->e_code->arg2->a_strval = expr->e_id;
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:

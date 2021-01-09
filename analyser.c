@@ -35,7 +35,8 @@ static int         slot_ct;
 static SymbolTbl   *prog_st;
 static Stack       stack; 
 
-static const char  *vtypes[] = {VTYPE};
+//static const char  *vtypes[] = {VTYPE};
+static const char  *etypes[] = {ETYPE};
 static const char  *btypes[] = {BINOP_NAMES};
 
 void
@@ -72,7 +73,7 @@ analyse_proc(FILE *fp, Proc proc) {
         proc->p_var_ct = var_ct;
     }
     
-    proc_statements(fp, analyse_statements, proc->p_body);
+    analyse_statements(fp, proc->p_body);
 
     proc->p_slot_ct = slot_ct;
 
@@ -166,7 +167,7 @@ analyse_statements(FILE *fp, Stmts stmts) {
     }
 
     if (stmts->s_rest != NULL) {
-        proc_statements(fp, analyse_statements, stmts->s_rest); 
+        analyse_statements(fp, stmts->s_rest); 
     }
 }
 
@@ -235,21 +236,25 @@ analyse_expression(FILE *fp, Expr expr) {
             fprintf(fp, "Line %d: ID %s is type %s\n", 
                     expr->e_lineno,
                     expr->e_id, 
-                    vtypes[stack->top->st->s_items[pos].type]);
+                    etypes[stack->top->st->s_items[pos].type]);
             break;
         case EXPR_INTCONST:
-            expr->e_type = INT;
-            //fprintf(fp, "INTCONST value is %d\n", expr->e_intval);
+            expr->e_type = E_TYPE_INT;
             fprintf(fp, "Line %d: '%d' is an INTCONST\n", 
                     expr->e_lineno,
                     expr->e_intval); 
             break;
         case EXPR_FLTCONST:
-            expr->e_type = FLOAT;
-            //fprintf(fp, "FLOATCONST value is %.3f\n", expr->e_fltval);
+            expr->e_type = E_TYPE_FLOAT;
             fprintf(fp, "Line %d: '%.3f' is a FLOATCONST\n", 
                     expr->e_lineno,
                     expr->e_fltval); 
+            break;
+        case EXPR_STRCONST:
+            expr->e_type = E_TYPE_STRING;
+            fprintf(fp, "Line %d: '%s' is a STRINGCONST\n", 
+                    expr->e_lineno,
+                    expr->e_id); 
             break;
         case EXPR_BINOP:
             analyse_binop(fp, expr); 
@@ -258,6 +263,8 @@ analyse_expression(FILE *fp, Expr expr) {
             analyse_expression(fp, expr->e1);
             break;
         default: 
+            fprintf(fp, "Unknown expression kind at line %d", expr->e_lineno);
+            report_error_and_exit("Unable to analyse.");
             break;
     }
 }
@@ -272,19 +279,19 @@ analyse_binop(FILE *fp, Expr expr) {
 
     analyse_expression(fp, expr->e1);
     analyse_expression(fp, expr->e2);
-    if (expr->e1->e_type == INT && expr->e2->e_type == INT) {
-        expr->e_type = INT;
+    if (expr->e1->e_type == E_TYPE_INT && expr->e2->e_type == E_TYPE_INT) {
+        expr->e_type = E_TYPE_INT;
         fprintf(fp, "Line %d: '%s' is type %s\n", 
                 expr->e_lineno,
                 btypes[expr->e_binop],
-                vtypes[expr->e_type]); 
+                etypes[expr->e_type]); 
     } 
     else {
-        expr->e_type = FLOAT;
+        expr->e_type = E_TYPE_FLOAT;
         fprintf(fp, "Line %d: '%s' is type %s\n", 
                 expr->e_lineno,
                 btypes[expr->e_binop],
-                vtypes[expr->e_type]); 
+                etypes[expr->e_type]); 
     }
     set_op(fp, expr);
 
@@ -298,7 +305,7 @@ analyse_binop(FILE *fp, Expr expr) {
 void
 set_op(FILE *fp, Expr expr) {
 
-    if (expr->e_type == INT) {
+    if (expr->e_type == E_TYPE_INT) {
         switch (expr->e_binop) {
             case BINOP_ADD:
                 expr->e_code->op = ADD_INT;

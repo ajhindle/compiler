@@ -47,7 +47,8 @@ void yyerror(const char *msg);
 }
 
 %token '(' ')' ',' ';' '{' '}'
-%token ASSIGN_TOKEN DO_TOKEN   ELSE_TOKEN  IF_TOKEN    INT_TOKEN    FLOAT_TOKEN
+%token ASSIGN_TOKEN DO_TOKEN   ELSE_TOKEN  IF_TOKEN    
+%token INT_TOKEN    FLOAT_TOKEN
 %token READ_TOKEN   SKIP_TOKEN THEN_TOKEN  WHILE_TOKEN WRITE_TOKEN
 %token PROC_TOKEN   END_TOKEN
 %token VAL_TOKEN    REF_TOKEN  VALRES_TOKEN
@@ -55,6 +56,7 @@ void yyerror(const char *msg);
 %token <int_val> INT_VAL_TOKEN
 %token <float_val> FLT_VAL_TOKEN
 %token <str_val> IDENT_TOKEN
+%token <str_val> STR_VAL_TOKEN
 
 /* Standard operator precedence */
 
@@ -495,6 +497,16 @@ expression
           $$->e_lineno = ln;
           $$->e_kind = EXPR_FLTCONST;
           $$->e_fltval = $1;
+          $$->e2 = NULL;
+          $$->e2 = NULL;
+        }
+    | STR_VAL_TOKEN 
+        { 
+          $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(2);
+          $$->e_lineno = ln;
+          $$->e_kind = EXPR_STRCONST;
+          $$->e_id = $1;
           $$->e2 = NULL;
           $$->e2 = NULL;
         }

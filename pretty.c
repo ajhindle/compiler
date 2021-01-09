@@ -11,8 +11,7 @@
 #include <stdio.h>
 #include "ast.h"
 #include "traverse.h"
-
-extern void report_error_and_exit(const char *msg);
+#include "util.h"
 
 
 const char *binopname[] = {BINOP_NAMES};
@@ -311,6 +310,9 @@ print_expression(FILE *fp, Expr expr) {
         case EXPR_FLTCONST:
             fprintf(fp, "%.2f", expr->e_fltval);
             break;
+        case EXPR_STRCONST:
+            fprintf(fp, "%s", expr->e_id);
+            break;
         case EXPR_BINOP:
             if (expr->e1->e_kind != EXPR_BINOP && 
                     expr->e1->e_kind != EXPR_UNOP && 
@@ -334,7 +336,8 @@ print_expression(FILE *fp, Expr expr) {
             proc_expression(fp, print_expression, expr->e1);
             break;
         default: 
-            fprintf(fp, "%s ", "UNKNOWN");
+            fprintf(fp, "Unknown expression type at line %d", expr->e_lineno);
+            report_error_and_exit("Unable to pretty print");
             break;
     }
 }

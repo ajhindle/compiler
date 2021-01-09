@@ -9,6 +9,7 @@ NUM     [0-9]+
 ID      [a-zA-Z_][A-Za-z_0-9]*
 nl      [\n\f]
 nonl    [^\n\f]
+STR     \"[^\"\n\f]*\"
 
 %{
 
@@ -45,12 +46,27 @@ ref             { return REF_TOKEN; }
 val             { return VAL_TOKEN; }
 valres          { return VALRES_TOKEN; }
 
-{NUM}           { yylval.int_val = atoi(yytext); return INT_VAL_TOKEN; }
-{NUM}"."{NUM}   { yylval.float_val = strtod(yytext,NULL); return FLT_VAL_TOKEN; }
+{NUM}           { 
+                    yylval.int_val = atoi(yytext); 
+                    return INT_VAL_TOKEN; 
+                }
 
-{ID}            { yylval.str_val = (char *) strdup(yytext); return IDENT_TOKEN; }
+{NUM}"."{NUM}   { 
+                    yylval.float_val = strtod(yytext,NULL); 
+                    return FLT_VAL_TOKEN; 
+                }
 
-[-+*/,;(){}]     { return yytext[0]; }         /* single character operators */
+{ID}            { 
+                    yylval.str_val = (char *) strdup(yytext); 
+                    return IDENT_TOKEN; 
+                }
+
+{STR}           { 
+                    yylval.str_val = (char *) strdup(yytext); 
+                    return STR_VAL_TOKEN; 
+                }
+
+[-+*/,;(){}]    { return yytext[0]; }         /* single character operators */
 
 ":="            { return ASSIGN_TOKEN; }
 
