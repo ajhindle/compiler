@@ -136,7 +136,7 @@ analyse_varnames(FILE *fp, VType type, VarNames varnames) {
     int     pos;
     VarName varname = varnames->v_first;
 
-    fprintf(fp, "Varname is %s\n", varname->v_id);
+    fprintf(fp, "# Varname is %s\n", varname->v_id);
     
     pos = st_insert(stack->top->st, varname->v_id);
     //add the type to symbol table too
@@ -233,26 +233,26 @@ analyse_expression(FILE *fp, Expr expr) {
             //TODO handler for undeclared var
             pos = st_lookup(stack->top->st, expr->e_id);
             expr->e_type = stack->top->st->s_items[pos].type;
-            fprintf(fp, "Line %d: ID %s is type %s\n", 
+            fprintf(fp, "# Line %d: ID %s is type %s\n", 
                     expr->e_lineno,
                     expr->e_id, 
                     etypes[stack->top->st->s_items[pos].type]);
             break;
         case EXPR_INTCONST:
             expr->e_type = E_TYPE_INT;
-            fprintf(fp, "Line %d: '%d' is an INTCONST\n", 
+            fprintf(fp, "# Line %d: '%d' is an INTCONST\n", 
                     expr->e_lineno,
                     expr->e_intval); 
             break;
         case EXPR_FLTCONST:
             expr->e_type = E_TYPE_FLOAT;
-            fprintf(fp, "Line %d: '%.3f' is a FLOATCONST\n", 
+            fprintf(fp, "# Line %d: '%.3f' is a FLOATCONST\n", 
                     expr->e_lineno,
                     expr->e_fltval); 
             break;
         case EXPR_STRCONST:
             expr->e_type = E_TYPE_STRING;
-            fprintf(fp, "Line %d: '%s' is a STRINGCONST\n", 
+            fprintf(fp, "# Line %d: '%s' is a STRINGCONST\n", 
                     expr->e_lineno,
                     expr->e_id); 
             break;
@@ -272,7 +272,7 @@ analyse_expression(FILE *fp, Expr expr) {
 
 /*
  * Determines the expression BINOP type based on what the two sub-expressions 
- * are.
+ * are. This info is used to binop operation used later in three-address-code.
  */
 void
 analyse_binop(FILE *fp, Expr expr) {
@@ -281,14 +281,14 @@ analyse_binop(FILE *fp, Expr expr) {
     analyse_expression(fp, expr->e2);
     if (expr->e1->e_type == E_TYPE_INT && expr->e2->e_type == E_TYPE_INT) {
         expr->e_type = E_TYPE_INT;
-        fprintf(fp, "Line %d: '%s' is type %s\n", 
+        fprintf(fp, "# Line %d: '%s' is type %s\n", 
                 expr->e_lineno,
                 btypes[expr->e_binop],
                 etypes[expr->e_type]); 
     } 
     else {
         expr->e_type = E_TYPE_FLOAT;
-        fprintf(fp, "Line %d: '%s' is type %s\n", 
+        fprintf(fp, "# Line %d: '%s' is type %s\n", 
                 expr->e_lineno,
                 btypes[expr->e_binop],
                 etypes[expr->e_type]); 
@@ -299,7 +299,7 @@ analyse_binop(FILE *fp, Expr expr) {
 
 
 /*
- * Determines the BINOP 'argument' to be used later for three-address-code.
+ * Determines the BINOP operation to be used later for three-address-code.
  * This procedure somewhat does part of the code generator's job. 
  */
 void

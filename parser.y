@@ -355,6 +355,7 @@ statement
     | start_cond expression THEN_TOKEN statement ELSE_TOKEN statement
         {
           $$ = allocate(sizeof(struct s_stmt));
+          $$->s_code = alloc_code(2);
           $$->s_lineno = $1;
           $$->s_kind = STMT_COND;
           $$->s_info.s_cond.if_cond = $2;

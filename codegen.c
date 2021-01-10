@@ -31,12 +31,15 @@ void get_nextplace(Arg arg, AType a_type);
 
 static int      curr_reg;
 static int      curr_slot;
+static int      curr_label;
 static Stack    stack; 
+static VType    var_type;
 const char      *builtin_names[] = {BUILTIN_NAMES};
 
 void
 gen_prog(FILE *fp, Program prog) {
 
+    curr_label = 0;
     fprintf(fp, "    call proc_main\n");
     fprintf(fp, "    halt\n");
     stack = stack_init();
@@ -80,10 +83,14 @@ gen_header(FILE *fp, Header header) {
 void 
 gen_params(FILE *fp, Params params) {
 
-    Instr p_code = params->p_first->p_code;
+    Instr   p_code = params->p_first->p_code;
+    int     pos;
 
     p_code->op = STORE;
-    get_nextplace(p_code->arg1, SLOT);
+    pos = st_lookup(stack->top->st, params->p_first->d_id);
+    p_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+    p_code->arg1->a_type = SLOT;
+    //get_nextplace(p_code->arg1, SLOT);
     get_nextplace(p_code->arg2, REG);
     fprintf(fp, "# argument %s is in stack slot %d\n", 
             params->p_first->d_id, p_code->arg1->a_val);
@@ -98,6 +105,8 @@ gen_params(FILE *fp, Params params) {
 void
 gen_decl(FILE *fp, Decl decl) {
 
+    var_type = decl->d_type;
+
     /* gen_type(fp, decls->d_first->d_type);*/
     proc_varnames(fp, gen_varname, decl->d_varnames);
 
@@ -109,7 +118,6 @@ gen_varname(FILE *fp, VarName varname) {
     Instr   v_code = varname->v_code;
     int     pos;
 
-    //TODO handle other types
     pos = st_lookup(stack->top->st, varname->v_id);
     varname->v_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
     varname->v_code->arg1->a_type = SLOT;
@@ -118,13 +126,22 @@ gen_varname(FILE *fp, VarName varname) {
     fprintf(fp, "# variable %s is in stack slot %d\n", 
             varname->v_id, v_code->arg1->a_val);
 
-    v_code->op = INT_CONST;
+    // initialise zero value in register
+    switch (var_type) {
+        case INT:
+            v_code->op = INT_CONST;
+            v_code->arg2->a_type = INTCONST;
+            break;
+        case FLOAT:
+            v_code->op = REAL_CONST;
+            v_code->arg2->a_type = REALCONST;
+            break;
+    }
     get_nextplace(v_code->arg1, REG);
-    v_code->arg2->a_type = INTCONST;
     v_code->arg2->a_val = 0;
-
     print_instruction(fp, varname->v_code);
-    
+   
+    // store register value in slot
     v_code->op = STORE;
     v_code->arg2->a_val = v_code->arg1->a_val;
     v_code->arg2->a_type = REG;
@@ -141,7 +158,7 @@ gen_statements(FILE *fp, Stmts stmts) {
         proc_statement(fp, gen_statement, stmts->s_first); 
     }
 
-    // TODO is this line causing an extra line to be written?
+    // TODO use Traverse for this instead
     if (stmts->s_rest != NULL) {
         gen_statements(fp, stmts->s_rest); 
     }
@@ -190,6 +207,9 @@ print_instr_arg(FILE *fp, Arg arg) {
         case BUILTIN:
             fprintf(fp, "%s", builtin_names[arg->a_val]);
             break;
+        case LABEL:
+            fprintf(fp, "label%d", arg->a_val);
+            break;
     }
 }
 
@@ -203,10 +223,10 @@ get_nextplace(Arg arg, AType a_type) {
             arg->a_type = REG;
             curr_reg = curr_reg + 1;
             break;
-        case SLOT:
-            arg->a_val = curr_slot;
-            arg->a_type = SLOT;
-            curr_slot = curr_slot + 1;
+        case LABEL:
+            arg->a_val = curr_label;
+            arg->a_type = LABEL;
+            curr_label = curr_label + 1;
             break;
         default:
             report_error_and_exit("Invalid instruction argument type."); 
@@ -214,6 +234,14 @@ get_nextplace(Arg arg, AType a_type) {
     }
 }
 
+
+/*
+ * Generates target code for a statement. Places/registers are determined here 
+ * and provided to (inherited by) expressions within the statement. After code 
+ * generation of an expression, the statement uses value found in the place 
+ * where the expression left a result. Statements also use slot values which 
+ * are found in the symbol table.
+ */
 
 void
 gen_statement(FILE *fp, Stmt stmt) {
@@ -248,9 +276,28 @@ gen_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_COND:
             //TODO
+            fprintf(fp, "# if\n"); 
+            stmt->s_info.s_cond.if_cond->e_place = allocate(sizeof(struct s_arg));
+            get_nextplace(stmt->s_info.s_cond.if_cond->e_place, REG);
             gen_expression(fp, stmt->s_info.s_cond.if_cond);
+
+            stmt->s_code->op = BRANCH_ON_TRUE;
+            //print_instruction(fp, stmt->s_code);
+            stmt->s_code->arg1 = stmt->s_info.s_cond.if_cond->e_place;
+            get_nextplace(stmt->s_code->arg2, LABEL);
+            print_instruction(fp, stmt->s_code);
+
+            fprintf(fp, "label%d:\n", stmt->s_code->arg2->a_val);
             gen_statement(fp, stmt->s_info.s_cond.if_then);
+
+            
             gen_statement(fp, stmt->s_info.s_cond.if_else);
+            //stmt->s_code->op = BRANCH_ON_FALSE;
+            //print_instruction(fp, stmt->s_code);
+
+            //stmt->s_code->op = BRANCH_UNCOND;
+            //print_instruction(fp, stmt->s_code);
+
             break;
         case STMT_READ:
             //TODO
@@ -307,7 +354,7 @@ gen_statement(FILE *fp, Stmt stmt) {
 
 void
 gen_expressions(FILE *fp, Exprs exprs) {
-    /* only used in Calls ? */
+    /* handles a list of expressions only used in Calls */
     gen_expression(fp, exprs->e_first);
         
     if (exprs->e_rest != NULL) {
@@ -357,6 +404,9 @@ gen_expression(FILE *fp, Expr expr) {
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:
+            // TODO handler for registers with data of different types
+            // e.g. r1 has INT and r2 has REAL
+            // convert r1 to REAL for operation
             expr->e1->e_place = allocate(sizeof(struct s_arg));
             expr->e2->e_place = allocate(sizeof(struct s_arg));
             get_nextplace(expr->e1->e_place, REG);

@@ -98,7 +98,7 @@ typedef enum {
 
 /* The type of the argument in the instructions for target language */
 typedef enum {
-    REG, SLOT, INTCONST, REALCONST, BUILTIN, STRCONST
+    REG, SLOT, INTCONST, REALCONST, BUILTIN, STRCONST, LABEL
 } AType;
 
 struct s_expr {

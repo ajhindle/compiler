@@ -219,16 +219,16 @@ st_dump(SymbolTbl *st)
 {
     int i, h;
             
-    printf("i : h : key\n");
+    printf("# i : h : key\n");
 
     for (i = 0; i < st->table_size; i++) {
 
         if (st->s_items[i].key != NULL) {
             h = hash( st->s_items[i].key , st->table_size);
-            printf("%d : %d : %s\n", i, h, st->s_items[i].key);
+            printf("# %d : %d : %s\n", i, h, st->s_items[i].key);
         }
     
     }
-    printf("Number of items: %d\n", st->num_items);
-    printf("Size of table: %d\n", st->table_size);
+    printf("# Number of items: %d\n", st->num_items);
+    printf("# Size of table: %d\n", st->table_size);
 }
