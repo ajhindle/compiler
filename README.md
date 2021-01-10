@@ -82,5 +82,6 @@ General:
 - supply test cases
 - code clean-up
 - more doco on the syntax and semantics of 'n07' ( see parser.y and scanner.l )
+- debug reduce conflicts etc.
 
 <!-- ![Visualisation](Dataflow-visual.PNG) -->

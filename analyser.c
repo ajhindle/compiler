@@ -11,7 +11,6 @@
 #include "ast.h"
 #include "traverse.h"
 #include "symbol.h"
-#include "stack.h"
 
 extern void report_error_and_exit(const char *msg);
 
@@ -32,8 +31,8 @@ void set_op(FILE *fp, Expr expr);
 static int         param_ct;
 static int         var_ct;
 static int         slot_ct;
+static Proc        curr_proc;
 static SymbolTbl   *prog_st;
-static Stack       stack; 
 
 //static const char  *vtypes[] = {VTYPE};
 static const char  *etypes[] = {ETYPE};
@@ -44,8 +43,6 @@ analyse_prog(FILE *fp, Program prog) {
 
     prog_st = st_init(31);
     prog->prog_st = prog_st;
-
-    stack = stack_init();
 
     proc_procs(fp, analyse_proc, prog->procs);
 
@@ -59,9 +56,8 @@ analyse_proc(FILE *fp, Proc proc) {
     param_ct = 0;
     var_ct = 0;
 
-    Frame frame = push(stack);
-    frame->st = st_init(31);
-    proc->p_st = frame->st;
+    proc->p_st = st_init(31);
+    curr_proc = proc;
 
     proc_header(fp, analyse_header, proc->p_header);
     
@@ -77,8 +73,7 @@ analyse_proc(FILE *fp, Proc proc) {
 
     proc->p_slot_ct = slot_ct;
 
-    frame = pop(stack);
-    st_dump(frame->st);
+    //st_dump(frame->st);
 }
 
 void 
@@ -107,10 +102,9 @@ analyse_params(FILE *fp, Params params) {
             break;
     }
 
-    pos = st_insert(stack->top->st, param->d_id);
-    //add the type to symbol table too
-    stack->top->st->s_items[pos].type = param->d_type;
-    stack->top->st->s_items[pos].stack_slot = slot_ct;
+    pos = st_insert(curr_proc->p_st, param->d_id);
+    curr_proc->p_st->s_items[pos].type = param->d_type;
+    curr_proc->p_st->s_items[pos].stack_slot = slot_ct;
     //decl: d_type
     //proc: no type
     slot_ct = slot_ct + 1;
@@ -138,10 +132,10 @@ analyse_varnames(FILE *fp, VType type, VarNames varnames) {
 
     fprintf(fp, "# Varname is %s\n", varname->v_id);
     
-    pos = st_insert(stack->top->st, varname->v_id);
+    pos = st_insert(curr_proc->p_st, varname->v_id);
     //add the type to symbol table too
-    stack->top->st->s_items[pos].type = type;
-    stack->top->st->s_items[pos].stack_slot = slot_ct;
+    curr_proc->p_st->s_items[pos].type = type;
+    curr_proc->p_st->s_items[pos].stack_slot = slot_ct;
     slot_ct = slot_ct + 1;
 
     if (varnames->v_rest != NULL) 
@@ -231,12 +225,12 @@ analyse_expression(FILE *fp, Expr expr) {
         case EXPR_ID:
             //lookup the symbol table to find the expr_id type
             //TODO handler for undeclared var
-            pos = st_lookup(stack->top->st, expr->e_id);
-            expr->e_type = stack->top->st->s_items[pos].type;
+            pos = st_lookup(curr_proc->p_st, expr->e_id);
+            expr->e_type = curr_proc->p_st->s_items[pos].type;
             fprintf(fp, "# Line %d: ID %s is type %s\n", 
                     expr->e_lineno,
                     expr->e_id, 
-                    etypes[stack->top->st->s_items[pos].type]);
+                    etypes[curr_proc->p_st->s_items[pos].type]);
             break;
         case EXPR_INTCONST:
             expr->e_type = E_TYPE_INT;

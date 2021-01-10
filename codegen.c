@@ -13,7 +13,6 @@
 #include "ast.h"
 #include "util.h"
 #include "traverse.h"
-#include "stack.h"
 
 
 void gen_proc(FILE *fp, Proc proc);
@@ -32,7 +31,7 @@ void get_nextplace(Arg arg, AType a_type);
 static int      curr_reg;
 static int      curr_slot;
 static int      curr_label;
-static Stack    stack; 
+static Proc     curr_proc;
 static VType    var_type;
 const char      *builtin_names[] = {BUILTIN_NAMES};
 
@@ -42,20 +41,16 @@ gen_prog(FILE *fp, Program prog) {
     curr_label = 0;
     fprintf(fp, "    call proc_main\n");
     fprintf(fp, "    halt\n");
-    stack = stack_init();
     proc_procs(fp, gen_proc, prog->procs);
 }
 
 void
 gen_proc(FILE *fp, Proc proc) {
 
-    //int slot_ct = proc->p_param_ct + proc->p_var_ct;
-    
     curr_reg = 0;
     curr_slot = 0;
 
-    Frame frame = push(stack);
-    stack->top->st = proc->p_st;
+    curr_proc = proc;
 
     fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", proc->p_slot_ct);
@@ -68,9 +63,6 @@ gen_proc(FILE *fp, Proc proc) {
     
     fprintf(fp, "    pop_stack_frame %d\n", proc->p_slot_ct);
     fprintf(fp, "    return\n" );
-    
-    frame = pop(stack);
-
 }
 
 void 
@@ -87,10 +79,10 @@ gen_params(FILE *fp, Params params) {
     int     pos;
 
     p_code->op = STORE;
-    pos = st_lookup(stack->top->st, params->p_first->d_id);
-    p_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+    pos = st_lookup(curr_proc->p_st, params->p_first->d_id);
+    p_code->arg1->a_val = curr_proc->p_st->s_items[pos].stack_slot;
     p_code->arg1->a_type = SLOT;
-    //get_nextplace(p_code->arg1, SLOT);
+
     get_nextplace(p_code->arg2, REG);
     fprintf(fp, "# argument %s is in stack slot %d\n", 
             params->p_first->d_id, p_code->arg1->a_val);
@@ -118,8 +110,8 @@ gen_varname(FILE *fp, VarName varname) {
     Instr   v_code = varname->v_code;
     int     pos;
 
-    pos = st_lookup(stack->top->st, varname->v_id);
-    varname->v_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+    pos = st_lookup(curr_proc->p_st, varname->v_id);
+    varname->v_code->arg1->a_val = curr_proc->p_st->s_items[pos].stack_slot;
     varname->v_code->arg1->a_type = SLOT;
 
 
@@ -146,7 +138,7 @@ gen_varname(FILE *fp, VarName varname) {
     v_code->arg2->a_val = v_code->arg1->a_val;
     v_code->arg2->a_type = REG;
     v_code->arg1->a_type = SLOT;
-    v_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+    v_code->arg1->a_val = curr_proc->p_st->s_items[pos].stack_slot;
 
     print_instruction(fp, varname->v_code);
 }
@@ -259,8 +251,8 @@ gen_statement(FILE *fp, Stmt stmt) {
             stmt->s_code->op = STORE;
             
             // get the correct "slot"
-            pos = st_lookup(stack->top->st, stmt->s_info.s_assign.asg_id);
-            stmt->s_code->arg1->a_val = stack->top->st->s_items[pos].stack_slot;
+            pos = st_lookup(curr_proc->p_st, stmt->s_info.s_assign.asg_id);
+            stmt->s_code->arg1->a_val = curr_proc->p_st->s_items[pos].stack_slot;
             stmt->s_code->arg1->a_type = SLOT;
 
             // get the "place" (reg) of the expression
@@ -373,8 +365,8 @@ gen_expression(FILE *fp, Expr expr) {
         case EXPR_ID:
             expr->e_code->op = LOAD;
             expr->e_code->arg1 = expr->e_place;
-            pos = st_lookup(stack->top->st, expr->e_id);
-            expr->e_code->arg2->a_val = stack->top->st->s_items[pos].stack_slot;
+            pos = st_lookup(curr_proc->p_st, expr->e_id);
+            expr->e_code->arg2->a_val = curr_proc->p_st->s_items[pos].stack_slot;
             expr->e_code->arg2->a_type = SLOT;
 
             //get_nextplace(expr->e_code->arg2, SLOT);
