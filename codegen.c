@@ -244,8 +244,6 @@ gen_statement(FILE *fp, Stmt stmt) {
     switch (s_kind) {
         case STMT_ASSIGN:
             fprintf(fp, "# assignment\n"); 
-            stmt->s_info.s_assign.asg_expr->e_place = allocate(sizeof(struct 
-                        s_arg));
             curr_reg = 0;
             
             stmt->s_code->op = STORE;
@@ -269,10 +267,10 @@ gen_statement(FILE *fp, Stmt stmt) {
         case STMT_COND:
             //TODO
             fprintf(fp, "# if\n"); 
-            stmt->s_info.s_cond.if_cond->e_place = allocate(sizeof(struct s_arg));
             get_nextplace(stmt->s_info.s_cond.if_cond->e_place, REG);
             gen_expression(fp, stmt->s_info.s_cond.if_cond);
 
+            // THEN
             stmt->s_code->op = BRANCH_ON_TRUE;
             //print_instruction(fp, stmt->s_code);
             stmt->s_code->arg1 = stmt->s_info.s_cond.if_cond->e_place;
@@ -283,10 +281,15 @@ gen_statement(FILE *fp, Stmt stmt) {
             gen_statement(fp, stmt->s_info.s_cond.if_then);
 
             
-            gen_statement(fp, stmt->s_info.s_cond.if_else);
-            //stmt->s_code->op = BRANCH_ON_FALSE;
-            //print_instruction(fp, stmt->s_code);
+            // ELSE
+            stmt->s_code->op = BRANCH_ON_FALSE;
+            stmt->s_code->arg1 = stmt->s_info.s_cond.if_cond->e_place;
+            get_nextplace(stmt->s_code->arg2, LABEL);
+            print_instruction(fp, stmt->s_code);
 
+            fprintf(fp, "label%d:\n", stmt->s_code->arg2->a_val);
+            gen_statement(fp, stmt->s_info.s_cond.if_else);
+            
             //stmt->s_code->op = BRANCH_UNCOND;
             //print_instruction(fp, stmt->s_code);
 
@@ -304,7 +307,6 @@ gen_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_WRITE:
             fprintf(fp, "# write\n"); 
-            stmt->s_info.s_write->e_place = allocate(sizeof(struct s_arg));
             curr_reg = 0;
             // set the place of the inner expression
             get_nextplace(stmt->s_info.s_write->e_place, REG);
@@ -399,8 +401,6 @@ gen_expression(FILE *fp, Expr expr) {
             // TODO handler for registers with data of different types
             // e.g. r1 has INT and r2 has REAL
             // convert r1 to REAL for operation
-            expr->e1->e_place = allocate(sizeof(struct s_arg));
-            expr->e2->e_place = allocate(sizeof(struct s_arg));
             get_nextplace(expr->e1->e_place, REG);
             get_nextplace(expr->e2->e_place, REG);
             gen_expression(fp, expr->e1);

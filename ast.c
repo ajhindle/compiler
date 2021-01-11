@@ -17,3 +17,13 @@ alloc_code(int num_args) {
 
     return code;
 }
+
+Arg
+alloc_instr_arg(void) {
+
+    Arg arg;
+
+    arg = allocate(sizeof(struct s_arg));
+
+    return arg;
+}

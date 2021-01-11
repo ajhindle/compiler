@@ -39,16 +39,6 @@ typedef enum {
     BINOP_OR, BINOP_AND
 } BinOp;
 
-/* typedef enum {
-    ADD_INT, ADD_REAL, SUB_INT, SUB_REAL, MUL_INT, MUL_REAL,
-    DIV_INT, DIV_REAL,
-    AND, OR, 
-    CMP_EQ_INT, CMP_NE_INT, CPM_GT_INT, CMP_GE_INT, 
-    CMP_LT_INT, CMP_LE_INT, 
-    CMP_EQ_REAL, CMP_NE_REAL, CPM_GT_REAL, CMP_GE_REAL 
-} ;
-*/
-
 
 #define BINOP_NAMES "+", "-", "*", "/", "=", "!=", "<", "<=", \
     ">", ">=", "or", "and"
@@ -222,7 +212,6 @@ struct s_exprs {
 typedef struct {
     char    *asg_id;
     Expr    asg_expr;
-    //Arg     stack_slot;
 } Assign;
 
 typedef struct {
@@ -300,6 +289,7 @@ struct s_procs {
 
 Instr alloc_code(int num_args);
 
+Arg alloc_instr_arg(void);
 
 #endif /* AST_H */
 

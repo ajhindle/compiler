@@ -401,6 +401,8 @@ expression
     : '-' get_lineno expression                %prec UNARY_MINUS
         {
           $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(2);
+          $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_UNOP;
           $$->e_unop = UNOP_MINUS;
           $$->e1 = $3;
@@ -412,6 +414,7 @@ expression
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(3);
+          $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_ADD;
           $$->e1 = $1;
@@ -423,6 +426,7 @@ expression
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(3);
+          $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_SUB;
           $$->e1 = $1;
@@ -434,6 +438,7 @@ expression
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(3);
+          $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_MUL;
           $$->e1 = $1;
@@ -445,6 +450,7 @@ expression
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(3);
+          $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_DIV;
           $$->e1 = $1;
@@ -474,6 +480,7 @@ expression
         { 
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(2);
+          $$->e_place = alloc_instr_arg();
           $$->e_lineno = ln;
           $$->e_kind = EXPR_ID;
           $$->e_id = $1;
@@ -485,6 +492,7 @@ expression
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(2);
+          $$->e_place = alloc_instr_arg();
           $$->e_lineno = ln;
           $$->e_kind = EXPR_INTCONST;
           $$->e_intval = $1;
@@ -495,6 +503,7 @@ expression
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(2);
+          $$->e_place = alloc_instr_arg();
           $$->e_lineno = ln;
           $$->e_kind = EXPR_FLTCONST;
           $$->e_fltval = $1;
@@ -505,6 +514,7 @@ expression
         { 
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(2);
+          $$->e_place = alloc_instr_arg();
           $$->e_lineno = ln;
           $$->e_kind = EXPR_STRCONST;
           $$->e_id = $1;
