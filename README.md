@@ -70,7 +70,6 @@ that it's syntactically correct, the pretty printer will fix it.
 
 ### TODO 
 Codegen support for:
-- if-then-else
 - loops
 - calls
 - read

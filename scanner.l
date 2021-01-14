@@ -45,6 +45,8 @@ end             { return END_TOKEN; }
 ref             { return REF_TOKEN; }
 val             { return VAL_TOKEN; }
 valres          { return VALRES_TOKEN; }
+and             { return AND_TOKEN; }
+or              { return OR_TOKEN; }
 
 {NUM}           { 
                     yylval.int_val = atoi(yytext); 
@@ -66,9 +68,14 @@ valres          { return VALRES_TOKEN; }
                     return STR_VAL_TOKEN; 
                 }
 
-[-+*/,;(){}]    { return yytext[0]; }         /* single character operators */
+[-+*/><,;(){}]  { return yytext[0]; }         /* single character operators */
 
 ":="            { return ASSIGN_TOKEN; }
+"!="            { return NE_TOKEN; }
+">="            { return GE_TOKEN; }
+"<="            { return LE_TOKEN; }
+"="             { return EQ_TOKEN; }
+
 
 "#"{nonl}*{nl}  { ln++; }
 

@@ -240,6 +240,7 @@ gen_statement(FILE *fp, Stmt stmt) {
 
     int     pos;
     SKind   s_kind = stmt->s_kind;
+    int     uncond_label, false_label;
 
     switch (s_kind) {
         case STMT_ASSIGN:
@@ -262,36 +263,40 @@ gen_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_BLOCK:
             //TODO
+            fprintf(fp, "# block\n"); 
             gen_statements(fp, stmt->s_info.s_block);
             break;
         case STMT_COND:
-            //TODO
             fprintf(fp, "# if\n"); 
             get_nextplace(stmt->s_info.s_cond.if_cond->e_place, REG);
             gen_expression(fp, stmt->s_info.s_cond.if_cond);
 
-            // THEN
-            stmt->s_code->op = BRANCH_ON_TRUE;
-            //print_instruction(fp, stmt->s_code);
-            stmt->s_code->arg1 = stmt->s_info.s_cond.if_cond->e_place;
-            get_nextplace(stmt->s_code->arg2, LABEL);
-            print_instruction(fp, stmt->s_code);
+            // set up branching instructions and "jump-to" labels
 
-            fprintf(fp, "label%d:\n", stmt->s_code->arg2->a_val);
-            gen_statement(fp, stmt->s_info.s_cond.if_then);
-
-            
-            // ELSE
             stmt->s_code->op = BRANCH_ON_FALSE;
             stmt->s_code->arg1 = stmt->s_info.s_cond.if_cond->e_place;
-            get_nextplace(stmt->s_code->arg2, LABEL);
+            false_label = curr_label;
+            curr_label++;
+            uncond_label = curr_label;
+            curr_label++;
+            stmt->s_code->arg2->a_val = false_label;
+            stmt->s_code->arg2->a_type = LABEL;
             print_instruction(fp, stmt->s_code);
 
-            fprintf(fp, "label%d:\n", stmt->s_code->arg2->a_val);
-            gen_statement(fp, stmt->s_info.s_cond.if_else);
+            // TRUE 
+            gen_statement(fp, stmt->s_info.s_cond.if_then);
             
-            //stmt->s_code->op = BRANCH_UNCOND;
-            //print_instruction(fp, stmt->s_code);
+            stmt->s_code->num_args = 1;
+            stmt->s_code->op = BRANCH_UNCOND;
+            stmt->s_code->arg1->a_type = LABEL;
+            stmt->s_code->arg1->a_val = uncond_label;
+            print_instruction(fp, stmt->s_code);
+
+            // FALSE 
+            fprintf(fp, "label%d:\n", false_label);
+            gen_statement(fp, stmt->s_info.s_cond.if_else);
+
+            fprintf(fp, "label%d:\n", uncond_label);
 
             break;
         case STMT_READ:
