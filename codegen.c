@@ -416,8 +416,19 @@ gen_expression(FILE *fp, Expr expr) {
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_UNOP:
-            //TODO 
+            get_nextplace(expr->e1->e_place, REG);
             gen_expression(fp, expr->e1);
+            if (expr->e_unop == UNOP_NOT) 
+                expr->e_code->op = NOT;
+            if (expr->e_unop == UNOP_MINUS) {
+                //TODO 
+                //expr->e_code->op = MINUS;
+                break;
+            }
+            expr->e_code->arg1->a_type = REG;
+            expr->e_code->arg1->a_val = 0;
+            expr->e_code->arg2 = expr->e1->e_place;
+            print_instruction(fp, expr->e_code);
             break;
     }
 }

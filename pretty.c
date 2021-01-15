@@ -332,7 +332,7 @@ print_expression(FILE *fp, Expr expr) {
             }
             break;
         case EXPR_UNOP:
-            fprintf(fp, " %s", unopname[expr->e_unop]);
+            fprintf(fp, "%s ", unopname[expr->e_unop]);
             proc_expression(fp, print_expression, expr->e1);
             break;
         default: 

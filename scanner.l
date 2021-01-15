@@ -47,6 +47,7 @@ val             { return VAL_TOKEN; }
 valres          { return VALRES_TOKEN; }
 and             { return AND_TOKEN; }
 or              { return OR_TOKEN; }
+not             { return NOT_TOKEN; }
 
 {NUM}           { 
                     yylval.int_val = atoi(yytext); 

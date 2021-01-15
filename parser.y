@@ -52,6 +52,7 @@ void yyerror(const char *msg);
 %token INT_TOKEN    FLOAT_TOKEN
 %token READ_TOKEN   SKIP_TOKEN THEN_TOKEN  WHILE_TOKEN WRITE_TOKEN
 %token PROC_TOKEN   END_TOKEN
+%token NOT_TOKEN
 %token VAL_TOKEN    REF_TOKEN  VALRES_TOKEN
 %token INVALID_TOKEN
 %token <int_val> INT_VAL_TOKEN
@@ -529,6 +530,18 @@ expression
           $$->e1 = $1;
           $$->e2 = $4;
           $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
+        }
+
+    | NOT_TOKEN expression get_lineno
+        {
+          $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(2);
+          $$->e_place = alloc_instr_arg();
+          $$->e_kind = EXPR_UNOP;
+          $$->e_unop = UNOP_NOT;
+          $$->e1 = $2;
+          $$->e2 = NULL;
+          $$->e_lineno = $3;
         }
 
     | expression AND_TOKEN get_lineno expression
