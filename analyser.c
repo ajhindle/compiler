@@ -11,6 +11,7 @@
 #include "ast.h"
 #include "traverse.h"
 #include "symbol.h"
+#include "util.h"
 
 extern void report_error_and_exit(const char *msg);
 
@@ -27,6 +28,7 @@ void analyse_expressions(FILE *fp, Exprs exprs);
 void analyse_expression(FILE *fp, Expr expr);
 void analyse_binop(FILE *fp, Expr expr);
 void set_op(FILE *fp, Expr expr); 
+void handle_unop_minus(FILE *fp, Expr orig_expr);
 
 static int         param_ct;
 static int         var_ct;
@@ -254,7 +256,14 @@ analyse_expression(FILE *fp, Expr expr) {
             analyse_binop(fp, expr); 
             break;
         case EXPR_UNOP:
-            analyse_expression(fp, expr->e1);
+            if (expr->e_unop == UNOP_NOT) {
+                analyse_expression(fp, expr->e1);
+                break;
+            }
+            if (expr->e_unop == UNOP_MINUS) {
+                handle_unop_minus(fp, expr);
+                break;
+            }
             break;
         default: 
             fprintf(fp, "Unknown expression kind at line %d", expr->e_lineno);
@@ -263,6 +272,36 @@ analyse_expression(FILE *fp, Expr expr) {
     }
 }
 
+/*
+ * This special UNOP_MINUS handler is required because the target machine 
+ * language does not handle a minus sign (e.g. -5) being loaded into a 
+ * register. So we have to trick it by transforming the minus sign into 
+ * something else.
+ */
+
+void
+handle_unop_minus(FILE *fp, Expr expr) {
+
+    Expr    neg_expr;
+
+    // change the unop expression to binop mult
+    expr->e_code->num_args = 3;
+    expr->e_kind = EXPR_BINOP;
+    expr->e_binop = BINOP_MUL;
+    
+    // create a -1 int const
+    neg_expr = allocate(sizeof(struct s_expr));
+    neg_expr->e_code = alloc_code(2);
+    neg_expr->e_place = alloc_instr_arg();
+    neg_expr->e_kind = EXPR_INTCONST;
+    neg_expr->e_intval = -1;
+    neg_expr->e1 = NULL;
+    neg_expr->e2 = NULL;
+    
+    expr->e2 = neg_expr;
+    
+    analyse_expression(fp, expr);
+}
 
 /*
  * Determines the expression BINOP type based on what the two sub-expressions 

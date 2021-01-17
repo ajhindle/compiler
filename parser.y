@@ -62,8 +62,12 @@ void yyerror(const char *msg);
 
 /* Standard operator precedence */
 
+%left OR_TOKEN
+%left AND_TOKEN 
+%left NOT_TOKEN
+%left GE_TOKEN     LE_TOKEN   NE_TOKEN    EQ_TOKEN '>' '<'
 %left '+' '-' 
-%left '*'
+%left '*' '/'
 %left UNARY_MINUS
 
 %type <prog_val>    program
@@ -412,30 +416,6 @@ expression
           $$->e_lineno = $2;
         }
 
-    | expression '+' get_lineno expression
-        {
-          $$ = allocate(sizeof(struct s_expr));
-          $$->e_code = alloc_code(3);
-          $$->e_place = alloc_instr_arg();
-          $$->e_kind = EXPR_BINOP;
-          $$->e_binop = BINOP_ADD;
-          $$->e1 = $1;
-          $$->e2 = $4;
-          $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
-        }
-
-    | expression '-' get_lineno expression
-        {
-          $$ = allocate(sizeof(struct s_expr));
-          $$->e_code = alloc_code(3);
-          $$->e_place = alloc_instr_arg();
-          $$->e_kind = EXPR_BINOP;
-          $$->e_binop = BINOP_SUB;
-          $$->e1 = $1;
-          $$->e2 = $4;
-          $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
-        }
-
     | expression '*' get_lineno expression
         {
           $$ = allocate(sizeof(struct s_expr));
@@ -455,6 +435,30 @@ expression
           $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_BINOP;
           $$->e_binop = BINOP_DIV;
+          $$->e1 = $1;
+          $$->e2 = $4;
+          $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
+        }
+
+    | expression '+' get_lineno expression
+        {
+          $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(3);
+          $$->e_place = alloc_instr_arg();
+          $$->e_kind = EXPR_BINOP;
+          $$->e_binop = BINOP_ADD;
+          $$->e1 = $1;
+          $$->e2 = $4;
+          $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
+        }
+
+    | expression '-' get_lineno expression
+        {
+          $$ = allocate(sizeof(struct s_expr));
+          $$->e_code = alloc_code(3);
+          $$->e_place = alloc_instr_arg();
+          $$->e_kind = EXPR_BINOP;
+          $$->e_binop = BINOP_SUB;
           $$->e1 = $1;
           $$->e2 = $4;
           $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
@@ -532,16 +536,16 @@ expression
           $$->e_lineno = $1->e_lineno == $4->e_lineno ? $1->e_lineno : $3;
         }
 
-    | NOT_TOKEN expression get_lineno
+    | NOT_TOKEN get_lineno expression 
         {
           $$ = allocate(sizeof(struct s_expr));
           $$->e_code = alloc_code(2);
           $$->e_place = alloc_instr_arg();
           $$->e_kind = EXPR_UNOP;
           $$->e_unop = UNOP_NOT;
-          $$->e1 = $2;
+          $$->e1 = $3;
           $$->e2 = NULL;
-          $$->e_lineno = $3;
+          $$->e_lineno = $2;
         }
 
     | expression AND_TOKEN get_lineno expression
@@ -594,7 +598,7 @@ expression
           $$->e_lineno = ln;
           $$->e_kind = EXPR_ID;
           $$->e_id = $1;
-          $$->e2 = NULL;
+          $$->e1 = NULL;
           $$->e2 = NULL;
         }
 
@@ -606,7 +610,7 @@ expression
           $$->e_lineno = ln;
           $$->e_kind = EXPR_INTCONST;
           $$->e_intval = $1;
-          $$->e2 = NULL;
+          $$->e1 = NULL;
           $$->e2 = NULL;
         }
     | FLT_VAL_TOKEN
@@ -617,7 +621,7 @@ expression
           $$->e_lineno = ln;
           $$->e_kind = EXPR_FLTCONST;
           $$->e_fltval = $1;
-          $$->e2 = NULL;
+          $$->e1 = NULL;
           $$->e2 = NULL;
         }
     | STR_VAL_TOKEN 
@@ -628,7 +632,7 @@ expression
           $$->e_lineno = ln;
           $$->e_kind = EXPR_STRCONST;
           $$->e_id = $1;
-          $$->e2 = NULL;
+          $$->e1 = NULL;
           $$->e2 = NULL;
         }
     ;

@@ -367,6 +367,7 @@ gen_expression(FILE *fp, Expr expr) {
 
     EKind   e_kind = expr->e_kind;
     int     pos;
+    Expr    temp_expr;
 
     switch (e_kind) {
         case EXPR_ID:
@@ -375,10 +376,6 @@ gen_expression(FILE *fp, Expr expr) {
             pos = st_lookup(curr_proc->p_st, expr->e_id);
             expr->e_code->arg2->a_val = curr_proc->p_st->s_items[pos].stack_slot;
             expr->e_code->arg2->a_type = SLOT;
-
-            //get_nextplace(expr->e_code->arg2, SLOT);
-            // get the correct "slot"
-
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_INTCONST:
@@ -418,17 +415,20 @@ gen_expression(FILE *fp, Expr expr) {
         case EXPR_UNOP:
             get_nextplace(expr->e1->e_place, REG);
             gen_expression(fp, expr->e1);
-            if (expr->e_unop == UNOP_NOT) 
+            if (expr->e_unop == UNOP_NOT) {
                 expr->e_code->op = NOT;
-            if (expr->e_unop == UNOP_MINUS) {
-                //TODO 
-                //expr->e_code->op = MINUS;
+                expr->e_code->arg1->a_type = REG;
+                expr->e_code->arg1->a_val = 0;
+                expr->e_code->arg2 = expr->e1->e_place;
+                print_instruction(fp, expr->e_code);
                 break;
             }
-            expr->e_code->arg1->a_type = REG;
-            expr->e_code->arg1->a_val = 0;
-            expr->e_code->arg2 = expr->e1->e_place;
-            print_instruction(fp, expr->e_code);
+            if (expr->e_unop == UNOP_MINUS) {
+                report_error_and_exit("UNOP_MINUS processing. \
+                        Not allowed in codegen."); 
+                break;
+            }
+
             break;
     }
 }
