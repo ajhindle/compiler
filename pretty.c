@@ -314,6 +314,9 @@ print_expression(FILE *fp, Expr expr) {
             fprintf(fp, "%s", expr->e_id);
             break;
         case EXPR_BINOP:
+            /* TODO review this.
+             * Intention is to surround non-simple expressions in brackets.
+             */
             if (expr->e1->e_kind != EXPR_BINOP && 
                     expr->e1->e_kind != EXPR_UNOP && 
                     expr->e2->e_kind != EXPR_BINOP && 
@@ -332,8 +335,16 @@ print_expression(FILE *fp, Expr expr) {
             }
             break;
         case EXPR_UNOP:
-            fprintf(fp, "%s ", unopname[expr->e_unop]);
+            if (expr->e_unop == UNOP_NOT) {
+                fprintf(fp, "%s ", unopname[expr->e_unop]);
+            }
+            if (expr->e_unop == UNOP_MINUS) {
+                fprintf(fp, "%s", unopname[expr->e_unop]);
+            }
+                
             proc_expression(fp, print_expression, expr->e1);
+
+
             break;
         default: 
             fprintf(fp, "Unknown expression type at line %d", expr->e_lineno);

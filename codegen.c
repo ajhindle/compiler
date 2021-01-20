@@ -367,7 +367,6 @@ gen_expression(FILE *fp, Expr expr) {
 
     EKind   e_kind = expr->e_kind;
     int     pos;
-    Expr    temp_expr;
 
     switch (e_kind) {
         case EXPR_ID:

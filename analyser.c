@@ -226,8 +226,14 @@ analyse_expression(FILE *fp, Expr expr) {
     switch (e_kind) {
         case EXPR_ID:
             //lookup the symbol table to find the expr_id type
-            //TODO handler for undeclared var
             pos = st_lookup(curr_proc->p_st, expr->e_id);
+            if (pos < 0) {
+                fprintf(fp, "Variable '%s' at line %d not declared.\n", 
+                        expr->e_id,
+                        expr->e_lineno);
+                report_error_and_exit("Unable to analyse.");
+            }
+
             expr->e_type = curr_proc->p_st->s_items[pos].type;
             fprintf(fp, "# Line %d: ID %s is type %s\n", 
                     expr->e_lineno,
@@ -275,30 +281,52 @@ analyse_expression(FILE *fp, Expr expr) {
 /*
  * This special UNOP_MINUS handler is required because the target machine 
  * language does not handle a minus sign (e.g. -5) being loaded into a 
- * register. So we have to trick it by transforming the minus sign into 
- * something else.
+ * register. So we have to trick it by transforming the minus operation into a 
+ * multiplication of the expression with (0 - 1).
  */
 
 void
 handle_unop_minus(FILE *fp, Expr expr) {
 
-    Expr    neg_expr;
+    Expr    one_expr;
+    Expr    zero_expr;
+    Expr    minus_expr;
 
+    // create a 1 int const
+    one_expr = allocate(sizeof(struct s_expr));
+    one_expr->e_code = alloc_code(2);
+    one_expr->e_place = alloc_instr_arg();
+    one_expr->e_kind = EXPR_INTCONST;
+    one_expr->e_intval = 1;
+    one_expr->e1 = NULL;
+    one_expr->e2 = NULL;
+    one_expr->e_lineno = expr->e_lineno;
+    
+    // create a 0 int const
+    zero_expr = allocate(sizeof(struct s_expr));
+    zero_expr->e_code = alloc_code(2);
+    zero_expr->e_place = alloc_instr_arg();
+    zero_expr->e_kind = EXPR_INTCONST;
+    zero_expr->e_intval = 0;
+    zero_expr->e1 = NULL;
+    zero_expr->e2 = NULL;
+    zero_expr->e_lineno = expr->e_lineno;
+    
+    // create a minus binop
+    minus_expr = allocate(sizeof(struct s_expr));
+    minus_expr->e_code = alloc_code(3);
+    minus_expr->e_place = alloc_instr_arg();
+    minus_expr->e_kind = EXPR_BINOP;
+    minus_expr->e_binop = BINOP_SUB;
+    minus_expr->e1 = zero_expr;
+    minus_expr->e2 = one_expr;
+    minus_expr->e_lineno = expr->e_lineno;
+    
     // change the unop expression to binop mult
     expr->e_code->num_args = 3;
     expr->e_kind = EXPR_BINOP;
     expr->e_binop = BINOP_MUL;
-    
-    // create a -1 int const
-    neg_expr = allocate(sizeof(struct s_expr));
-    neg_expr->e_code = alloc_code(2);
-    neg_expr->e_place = alloc_instr_arg();
-    neg_expr->e_kind = EXPR_INTCONST;
-    neg_expr->e_intval = -1;
-    neg_expr->e1 = NULL;
-    neg_expr->e2 = NULL;
-    
-    expr->e2 = neg_expr;
+    expr->e2 = minus_expr;
     
     analyse_expression(fp, expr);
 }

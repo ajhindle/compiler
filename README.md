@@ -73,10 +73,9 @@ Codegen support for:
 - loops
 - calls
 - read
-- unary operators
 
 Semantic analysis:
-- undeclared variables, procedures, etc.
+- undeclared procedures, etc.
 - type errors
 
 General:
