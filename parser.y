@@ -373,6 +373,7 @@ statement
     | start_while expression DO_TOKEN statement
         {
           $$ = allocate(sizeof(struct s_stmt));
+          $$->s_code = alloc_code(2);
           $$->s_lineno = $1;
           $$->s_kind = STMT_WHILE;
           $$->s_info.s_while.while_cond = $2;

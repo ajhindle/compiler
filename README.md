@@ -5,9 +5,9 @@ The language is called 'n07'. The compiler does the following:
 - Parses the sequence of tokens and builds an abstract syntax tree (AST) using 
   [Bison](https://en.wikipedia.org/wiki/GNU_Bison)
 - Runs semantic analysis (rules checking) over the AST of the program
-- Generates 'intermediate representation' abstract three-address code (see 
+- Generates 'intermediate representation' three-address code (see 
   below). This code is input for a target machine 't07' (not supplied *yet*)
-- Pretty prints the given n07 program to stdout (using -p flag option)
+- Optionally pretty prints the given n07 program to stdout (using -p flag option)
 
 
 ### Translation example:
@@ -70,7 +70,7 @@ that it's syntactically correct, the pretty printer will fix it.
 
 ### TODO 
 Codegen support for:
-- loops
+- for loops (while loops are supported)
 - calls
 - read
 

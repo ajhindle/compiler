@@ -240,7 +240,7 @@ gen_statement(FILE *fp, Stmt stmt) {
 
     int     pos;
     SKind   s_kind = stmt->s_kind;
-    int     uncond_label, false_label;
+    int     uncond_label, false_label, begin_label;
 
     switch (s_kind) {
         case STMT_ASSIGN:
@@ -306,9 +306,35 @@ gen_statement(FILE *fp, Stmt stmt) {
             //TODO
             break;
         case STMT_WHILE:
-            //TODO
+            fprintf(fp, "# while\n"); 
+            get_nextplace(stmt->s_info.s_while.while_cond->e_place, REG);
+            
+            uncond_label = curr_label;
+            curr_label++;
+            begin_label = curr_label;
+            curr_label++;
+
+            // set up branching instructions and "jump-to" labels
+            fprintf(fp, "label%d:\n", begin_label);
             gen_expression(fp, stmt->s_info.s_while.while_cond);
+
+            stmt->s_code->num_args = 2;
+            stmt->s_code->op = BRANCH_ON_FALSE;
+            stmt->s_code->arg1 = stmt->s_info.s_while.while_cond->e_place;
+            stmt->s_code->arg2->a_val = uncond_label;
+            stmt->s_code->arg2->a_type = LABEL;
+            print_instruction(fp, stmt->s_code);
+
             gen_statement(fp, stmt->s_info.s_while.while_body);
+
+            stmt->s_code->num_args = 1;
+            stmt->s_code->op = BRANCH_UNCOND;
+            stmt->s_code->arg1->a_val = begin_label;
+            stmt->s_code->arg1->a_type = LABEL;
+            print_instruction(fp, stmt->s_code);
+
+            fprintf(fp, "label%d:\n", uncond_label);
+
             break;
         case STMT_WRITE:
             fprintf(fp, "# write\n"); 
