@@ -61,7 +61,7 @@ label1:
     branch_uncond label1
 label0:
     pop_stack_frame 1
-
+```
 
 ### Pretty printer
 
