@@ -345,6 +345,7 @@ statement
     | start_read IDENT_TOKEN
         {
           $$ = allocate(sizeof(struct s_stmt));
+          $$->s_code = alloc_code(1);
           $$->s_lineno = $1;
           $$->s_kind = STMT_READ;
           $$->s_info.s_read = $2;

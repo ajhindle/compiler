@@ -301,6 +301,37 @@ gen_statement(FILE *fp, Stmt stmt) {
             break;
         case STMT_READ:
             //TODO
+            fprintf(fp, "# read\n"); 
+            
+
+            
+            stmt->s_code->op = CALL_BUILTIN;
+            stmt->s_code->arg1->a_type = BUILTIN;
+
+            switch (stmt->s_info.s_write->e_type) {
+                case E_TYPE_INT:
+                    stmt->s_code->arg1->a_val = READ_INT;
+                    break;
+                case E_TYPE_FLOAT:
+                    stmt->s_code->arg1->a_val = READ_REAL;
+                    break;
+                case E_TYPE_STRING:
+                    stmt->s_code->arg1->a_val = READ_STRING;
+            }
+
+            print_instruction(fp, stmt->s_code);
+            
+            curr_reg = 0;
+            stmt->s_code->num_args = 2;
+            stmt->s_code->op = STORE;
+            
+            pos = st_lookup(curr_proc->p_st, stmt->s_info.s_assign.asg_id);
+            stmt->s_code->arg1->a_val = curr_proc->p_st->s_items[pos].stack_slot;
+            stmt->s_code->arg1->a_type = SLOT;
+            stmt->s_code->arg2->a_val = curr_reg;
+            stmt->s_code->arg2->a_type = REG;
+            print_instruction(fp, stmt->s_code);
+
             break;
         case STMT_SKIP:
             //TODO

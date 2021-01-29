@@ -14,15 +14,20 @@ The language is called 'n07'. The compiler does the following:
 
 Contents of file "test.k"
 ```
-proc main ()
-    int i;
-    i := 6 * 4;
-    write i
-end
+proc main ()                        
+int i;
+{ 
+    read i ;
+
+    while i > 0 do {
+        write i;
+        write "\n";
+        i := i - 1
+    }
+}
 ```
 
 Running "n7c test.k" would produce this target machine t07 code:
-
 ```
     call proc_main
     halt
@@ -31,17 +36,31 @@ proc_main:
 # variable i is in stack slot 0
     int_const r0, 0
     store 0, r0
-# assignment
-    int_const r1, 6
-    int_const r2, 4
-    mul_int r3, r1, r2
-    store 0, r3
+# block
+# read
+    call_builtin read_int
+    store 0, r0
+# while
+label1:
+    load r1, 0
+    int_const r2, 0
+    cmp_gt_int r0, r1, r2
+    branch_on_false r0, label0
+# block
 # write
-    load 0, r0
+    load r0, 0
     call_builtin print_int
+# write
+    string_const r0, "\n"
+    call_builtin print_string
+# assignment
+    load r1, 0
+    int_const r2, 1
+    sub_int r0, r1, r2
+    store 0, r0
+    branch_uncond label1
+label0:
     pop_stack_frame 1
-    return
-```
 
 
 ### Pretty printer
@@ -71,8 +90,7 @@ that it's syntactically correct, the pretty printer will fix it.
 ### TODO 
 Codegen support for:
 - for loops (while loops are supported)
-- calls
-- read
+- calling other procedures
 
 Semantic analysis:
 - undeclared procedures, etc.
