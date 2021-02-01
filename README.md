@@ -1,4 +1,4 @@
-# A WIP compiler for a demo procedural language 'n07'
+# A compiler for a demo procedural language 'n07'
 
 The language is called 'n07'. The compiler does the following:
 - Scans the n07 source code for tokens using [Flex](https://en.wikipedia.org/wiki/Flex_(lexical_analyser_generator))
@@ -12,7 +12,7 @@ The language is called 'n07'. The compiler does the following:
 
 ### Translation example:
 
-Contents of file "test.k"
+Contents of file "test.k" with n07 code:
 ```
 proc main ()                        
 int i;
@@ -27,7 +27,7 @@ int i;
 }
 ```
 
-Running "n7c test.k" would produce this target machine t07 code:
+Running the n7c compiler on test.k (like this: "n7c test.k") would produce this target machine t07 code:
 ```
     call proc_main
     halt

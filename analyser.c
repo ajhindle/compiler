@@ -27,7 +27,7 @@ void analyse_statement(FILE *fp, Stmt stmt);
 void analyse_expressions(FILE *fp, Exprs exprs);
 void analyse_expression(FILE *fp, Expr expr);
 void analyse_binop(FILE *fp, Expr expr);
-void set_op(FILE *fp, Expr expr); 
+void set_instruction_op(FILE *fp, Expr expr); 
 void handle_unop_minus(FILE *fp, Expr orig_expr);
 
 static int         param_ct;
@@ -354,17 +354,17 @@ analyse_binop(FILE *fp, Expr expr) {
                 btypes[expr->e_binop],
                 etypes[expr->e_type]); 
     }
-    set_op(fp, expr);
+    set_instruction_op(fp, expr);
 
 }
 
-
 /*
- * Determines the BINOP operation to be used later for three-address-code.
- * This procedure somewhat does part of the code generator's job. 
+ * Determines the BINOP instruction operation to be used later for 
+ * three-address-code. This procedure somewhat does part of the code 
+ * generator's job. 
  */
 void
-set_op(FILE *fp, Expr expr) {
+set_instruction_op(FILE *fp, Expr expr) {
 
     if (expr->e_type == E_TYPE_INT) {
         switch (expr->e_binop) {
@@ -406,7 +406,7 @@ set_op(FILE *fp, Expr expr) {
                 break;
         }
     }
-    else {
+    else {      // e_type is E_TYPE_FLOAT
         switch (expr->e_binop) {
             case BINOP_ADD:
                 expr->e_code->op = ADD_REAL;

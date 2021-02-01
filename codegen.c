@@ -27,6 +27,8 @@ void gen_expression(FILE *fp, Expr expr);
 void print_instruction(FILE *fp, Instr instr);
 void print_instr_arg(FILE *fp, Arg arg); 
 void get_nextplace(Arg arg, AType a_type);
+void check_type_mismatch(FILE *fp, Expr expr); 
+void gen_convert_to_real(FILE *fp, Expr expr);
 
 static int      curr_reg;
 static int      curr_slot;
@@ -262,7 +264,6 @@ gen_statement(FILE *fp, Stmt stmt) {
             print_instruction(fp, stmt->s_code);
             break;
         case STMT_BLOCK:
-            //TODO
             fprintf(fp, "# block\n"); 
             gen_statements(fp, stmt->s_info.s_block);
             break;
@@ -300,15 +301,12 @@ gen_statement(FILE *fp, Stmt stmt) {
 
             break;
         case STMT_READ:
-            //TODO
             fprintf(fp, "# read\n"); 
-            
-
-            
+            pos = st_lookup(curr_proc->p_st, stmt->s_info.s_read);
             stmt->s_code->op = CALL_BUILTIN;
             stmt->s_code->arg1->a_type = BUILTIN;
 
-            switch (stmt->s_info.s_write->e_type) {
+            switch (curr_proc->p_st->s_items[pos].type) {
                 case E_TYPE_INT:
                     stmt->s_code->arg1->a_val = READ_INT;
                     break;
@@ -324,8 +322,7 @@ gen_statement(FILE *fp, Stmt stmt) {
             curr_reg = 0;
             stmt->s_code->num_args = 2;
             stmt->s_code->op = STORE;
-            
-            pos = st_lookup(curr_proc->p_st, stmt->s_info.s_assign.asg_id);
+
             stmt->s_code->arg1->a_val = curr_proc->p_st->s_items[pos].stack_slot;
             stmt->s_code->arg1->a_type = SLOT;
             stmt->s_code->arg2->a_val = curr_reg;
@@ -334,10 +331,10 @@ gen_statement(FILE *fp, Stmt stmt) {
 
             break;
         case STMT_SKIP:
-            //TODO
             break;
         case STMT_WHILE:
             fprintf(fp, "# while\n"); 
+            curr_reg = 0;
             get_nextplace(stmt->s_info.s_while.while_cond->e_place, REG);
             
             uncond_label = curr_label;
@@ -456,13 +453,11 @@ gen_expression(FILE *fp, Expr expr) {
             print_instruction(fp, expr->e_code);
             break;
         case EXPR_BINOP:
-            // TODO handler for registers with data of different types
-            // e.g. r1 has INT and r2 has REAL
-            // convert r1 to REAL for operation
             get_nextplace(expr->e1->e_place, REG);
             get_nextplace(expr->e2->e_place, REG);
             gen_expression(fp, expr->e1);
             gen_expression(fp, expr->e2);
+            check_type_mismatch(fp, expr);
             expr->e_code->arg1 = expr->e_place;
             expr->e_code->arg2 = expr->e1->e_place;
             expr->e_code->arg3 = expr->e2->e_place;
@@ -489,3 +484,30 @@ gen_expression(FILE *fp, Expr expr) {
     }
 }
 
+/*
+ * Checks if both sub expressions of a float binop expression are floats. If 
+ * they are not then generate a conversion instruction. 
+ * e.g. r1 has INT and r2 has REAL, therefore convert r1 to REAL 
+ */
+void
+check_type_mismatch(FILE *fp, Expr expr) {
+
+    if (expr->e_type == E_TYPE_FLOAT) {
+        if (expr->e1->e_type != E_TYPE_FLOAT) 
+            gen_convert_to_real(fp, expr->e1);
+        
+        if (expr->e2->e_type != E_TYPE_FLOAT) 
+            gen_convert_to_real(fp, expr->e2);
+    }
+}
+
+void
+gen_convert_to_real(FILE *fp, Expr expr) {
+    
+    Instr   code = alloc_code(2);
+
+    code->op = INT_TO_REAL;
+    code->arg1 = expr->e_place;
+    code->arg2 = expr->e_place;
+    print_instruction(fp, code);
+}
