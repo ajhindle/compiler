@@ -291,5 +291,7 @@ Instr alloc_code(int num_args);
 
 Arg alloc_instr_arg(void);
 
+int check_for_main(char *h_id); 
+
 #endif /* AST_H */
 

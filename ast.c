@@ -27,3 +27,14 @@ alloc_instr_arg(void) {
 
     return arg;
 }
+
+/*
+int
+check_for_main(char *h_id) {
+
+    if (strcmp(h_id, "main" ) == 0) 
+        return 1;
+    else
+        return 0;
+}
+*/

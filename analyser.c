@@ -8,6 +8,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include "ast.h"
 #include "traverse.h"
 #include "symbol.h"
@@ -29,6 +30,7 @@ void analyse_expression(FILE *fp, Expr expr);
 void analyse_binop(FILE *fp, Expr expr);
 void set_instruction_op(FILE *fp, Expr expr); 
 void handle_unop_minus(FILE *fp, Expr orig_expr);
+//void find_and_move_main(Procs procs);
 
 static int         param_ct;
 static int         var_ct;
@@ -46,10 +48,50 @@ analyse_prog(FILE *fp, Program prog) {
     prog_st = st_init(31);
     prog->prog_st = prog_st;
 
+    //if !prog->procs->p_first->p_main
+    //    find_and_move_main(prog->procs);
+
     proc_procs(fp, analyse_proc, prog->procs);
 
     st_dump(prog->prog_st);
 }
+
+/*
+void
+find_and_move_main(Procs procs) {
+
+    if procs == NULL
+        report_error_and_exit("No main() proc has been defined.");
+    
+    
+    //if procs->p_first->p_main
+    //    return;
+
+    // check if the proc *ahead* in the chain is main()
+    if procs->p_rest->p_first->p_main {
+        printf("# Moving main()...");
+        move_main(procs);
+    }
+    else
+        find_and_move_main(procs->p_rest);
+
+}
+
+
+void 
+move_main(Procs procs) {
+
+    Proc    prev_proc;
+    Proc    main_proc;
+
+    prev_proc = procs->p_first;
+
+    prog->procs->p_first = main_proc;
+
+    prog->procs->p_rest->p_first;
+}
+
+*/
 
 void
 analyse_proc(FILE *fp, Proc proc) {
@@ -62,11 +104,17 @@ analyse_proc(FILE *fp, Proc proc) {
     curr_proc = proc;
 
     proc_header(fp, analyse_header, proc->p_header);
+
+    // set p_main if the header ID is "main"
+    if (strcmp(proc->p_header->h_id, "main") == 0)
+        proc->p_main = 1;
+    else
+        proc->p_main = 0;
     
     proc->p_param_ct = param_ct;
     proc->p_var_ct = var_ct;
 
-    if(proc->p_decls != NULL) {
+    if (proc->p_decls != NULL) {
         proc_decls(fp, analyse_decl, proc->p_decls);
         proc->p_var_ct = var_ct;
     }

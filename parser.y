@@ -134,6 +134,7 @@ procedure
           $$->p_decls = $3;
           $$->p_body = $4;
 	    }
+    ;
 
 header
     : IDENT_TOKEN '(' param_decl_list ')'
@@ -229,6 +230,7 @@ decl
           $$->d_type = $1; 
           $$->d_varnames = $2; 
         }
+    ;
 
 
 
@@ -384,6 +386,8 @@ statement
     | IDENT_TOKEN '(' expression_list ')'         
         {
           $$ = allocate(sizeof(struct s_stmt));
+          $$->s_code = alloc_code(1);
+          $$->s_lineno = $3;
           $$->s_info.s_call.call_id = $1;
           $$->s_kind = STMT_CALL;
           $$->s_info.s_call.s_exprs = $3;

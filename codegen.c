@@ -54,6 +54,11 @@ gen_proc(FILE *fp, Proc proc) {
 
     curr_proc = proc;
 
+    if (proc->p_main == 1)
+        fprintf(fp, "# p_main = 1\n");
+    else
+        fprintf(fp, "# p_main = 0\n");
+
     fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", proc->p_slot_ct);
     proc_header(fp, gen_header, proc->p_header);
@@ -218,7 +223,7 @@ get_nextplace(Arg arg, AType a_type) {
             curr_reg = curr_reg + 1;
             break;
         case LABEL:
-            arg->a_val = curr_label;
+            sprintf(arg->a_strval, "label%d", curr_label);
             arg->a_type = LABEL;
             curr_label = curr_label + 1;
             break;
@@ -399,8 +404,15 @@ gen_statement(FILE *fp, Stmt stmt) {
             gen_statement(fp, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
-            //TODO
+            // curr_reg = 0 ????;
+            // get active registers and save them in stack slot for use with 
+            // the called proc
+            stmt->s_code->op = CALL;
+            stmt->s_code->arg1->a_type = LABEL;
+            stmt->s_code->arg1->a_strval = stmt->s_info.s_call.call_id;
+            print_instruction(fp, stmt->s_code);
             gen_expressions(fp, stmt->s_info.s_call.s_exprs);
+            // (required??) put stack slot values back in registers
             break;
     }
 }
