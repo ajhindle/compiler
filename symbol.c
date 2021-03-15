@@ -20,6 +20,7 @@
 
 #include "symbol.h"
 #include "util.h"
+#include "ast.h"
 
 static BOOL is_prime(int n); 
 static int hash(char *key, int tsize);

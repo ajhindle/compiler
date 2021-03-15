@@ -8,6 +8,7 @@
 
 
 #include "std.h"
+#include "proc.h"
 
 /*
  * Table entry contains param/variable/proc name (key) and its type.
@@ -16,6 +17,7 @@ typedef struct {
 	char        *key;
     int         type;
     int         stack_slot;
+    Proc        proc;          // pointer to proc (only in prog symbol table)
 } TblEntry;
 
 /*
@@ -26,7 +28,6 @@ typedef struct {
 	int         num_items;
 	TblEntry    *s_items;
 } SymbolTbl;
-
 
 /*
  * Returns an integer representing the position of the given word in 

@@ -90,7 +90,7 @@ that it's syntactically correct, the pretty printer will fix it.
 ### TODO 
 Codegen support for:
 - for loops (while loops are supported)
-- calling other procedures
+- call-by-ref (call-by-value is ok)
 
 Semantic analysis:
 - undeclared procedures, etc.

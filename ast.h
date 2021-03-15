@@ -13,6 +13,7 @@
 #define AST_H
 
 #include "symbol.h"
+#include "proc.h"
 
 typedef struct s_decl   	*Decl;
 typedef struct s_decls 		*Decls;
@@ -25,7 +26,7 @@ typedef struct s_exprs		*Exprs;
 typedef struct s_stmts  	*Stmts;
 typedef struct s_stmt   	*Stmt;
 typedef struct s_header		*Header;
-typedef struct s_proc		*Proc;
+//typedef struct s_proc		*Proc;
 typedef	struct s_procs		*Procs;
 typedef struct s_prog   	*Program;
 
@@ -88,7 +89,7 @@ typedef enum {
 
 /* The type of the argument in the instructions for target language */
 typedef enum {
-    REG, SLOT, INTCONST, REALCONST, BUILTIN, STRCONST, LABEL
+    REG, SLOT, INTCONST, REALCONST, BUILTIN, STRCONST, LABEL, PROC
 } AType;
 
 struct s_expr {
@@ -262,7 +263,7 @@ struct s_stmts {
 };
 
 struct s_prog {
-    Procs   procs;
+    Procs       procs;
     SymbolTbl   *prog_st;
 };
 

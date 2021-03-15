@@ -30,7 +30,6 @@ void analyse_expression(FILE *fp, Expr expr);
 void analyse_binop(FILE *fp, Expr expr);
 void set_instruction_op(FILE *fp, Expr expr); 
 void handle_unop_minus(FILE *fp, Expr orig_expr);
-//void find_and_move_main(Procs procs);
 
 static int         param_ct;
 static int         var_ct;
@@ -48,50 +47,10 @@ analyse_prog(FILE *fp, Program prog) {
     prog_st = st_init(31);
     prog->prog_st = prog_st;
 
-    //if !prog->procs->p_first->p_main
-    //    find_and_move_main(prog->procs);
-
     proc_procs(fp, analyse_proc, prog->procs);
 
     st_dump(prog->prog_st);
 }
-
-/*
-void
-find_and_move_main(Procs procs) {
-
-    if procs == NULL
-        report_error_and_exit("No main() proc has been defined.");
-    
-    
-    //if procs->p_first->p_main
-    //    return;
-
-    // check if the proc *ahead* in the chain is main()
-    if procs->p_rest->p_first->p_main {
-        printf("# Moving main()...");
-        move_main(procs);
-    }
-    else
-        find_and_move_main(procs->p_rest);
-
-}
-
-
-void 
-move_main(Procs procs) {
-
-    Proc    prev_proc;
-    Proc    main_proc;
-
-    prev_proc = procs->p_first;
-
-    prog->procs->p_first = main_proc;
-
-    prog->procs->p_rest->p_first;
-}
-
-*/
 
 void
 analyse_proc(FILE *fp, Proc proc) {
@@ -129,7 +88,11 @@ analyse_proc(FILE *fp, Proc proc) {
 void 
 analyse_header(FILE *fp, Header header) {
 
-    st_insert(prog_st, header->h_id);
+    int     pos;
+
+    // add the proc header ID and pointer to prog symbol table
+    pos = st_insert(prog_st, header->h_id);
+    prog_st->s_items[pos].proc = curr_proc;
    
     if (header->h_params != NULL) 
         proc_params(fp, analyse_params, header->h_params);

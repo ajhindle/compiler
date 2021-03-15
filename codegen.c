@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include "ast.h"
+//#include "proc.h"
 #include "util.h"
 #include "traverse.h"
 
@@ -33,6 +34,7 @@ void gen_convert_to_real(FILE *fp, Expr expr);
 static int      curr_reg;
 static int      curr_slot;
 static int      curr_label;
+static int      main_printed = 0;
 static Proc     curr_proc;
 static VType    var_type;
 const char      *builtin_names[] = {BUILTIN_NAMES};
@@ -40,9 +42,19 @@ const char      *builtin_names[] = {BUILTIN_NAMES};
 void
 gen_prog(FILE *fp, Program prog) {
 
-    curr_label = 0;
+    int pos     = 0;
+
+    curr_label  = 0;
+
     fprintf(fp, "    call proc_main\n");
     fprintf(fp, "    halt\n");
+
+    pos = st_lookup(prog->prog_st, "main");
+    gen_proc(fp, prog->prog_st->s_items[pos].proc);
+
+    //gen_proc(prog->proc_main);
+    main_printed = 1;
+
     proc_procs(fp, gen_proc, prog->procs);
 }
 
@@ -54,10 +66,11 @@ gen_proc(FILE *fp, Proc proc) {
 
     curr_proc = proc;
 
-    if (proc->p_main == 1)
-        fprintf(fp, "# p_main = 1\n");
-    else
-        fprintf(fp, "# p_main = 0\n");
+    // only print 
+    if (proc->p_main == 1 && main_printed) {
+        fprintf(fp, "# not printing main again ...\n");
+        return;
+    }
 
     fprintf(fp, "proc_%s:\n", proc->p_header->h_id);
     fprintf(fp, "    push_stack_frame %d\n", proc->p_slot_ct);
@@ -70,6 +83,7 @@ gen_proc(FILE *fp, Proc proc) {
     
     fprintf(fp, "    pop_stack_frame %d\n", proc->p_slot_ct);
     fprintf(fp, "    return\n" );
+    
 }
 
 void 
@@ -208,6 +222,9 @@ print_instr_arg(FILE *fp, Arg arg) {
             break;
         case LABEL:
             fprintf(fp, "label%d", arg->a_val);
+            break;
+        case PROC:
+            fprintf(fp, "proc_%s", arg->a_strval);
             break;
     }
 }
@@ -408,7 +425,7 @@ gen_statement(FILE *fp, Stmt stmt) {
             // get active registers and save them in stack slot for use with 
             // the called proc
             stmt->s_code->op = CALL;
-            stmt->s_code->arg1->a_type = LABEL;
+            stmt->s_code->arg1->a_type = PROC;
             stmt->s_code->arg1->a_strval = stmt->s_info.s_call.call_id;
             print_instruction(fp, stmt->s_code);
             gen_expressions(fp, stmt->s_info.s_call.s_exprs);
