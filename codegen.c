@@ -421,14 +421,16 @@ gen_statement(FILE *fp, Stmt stmt) {
             gen_statement(fp, stmt->s_info.s_for.for_body);
             break;
         case STMT_CALL:
-            // curr_reg = 0 ????;
+            curr_reg = 0;
             // get active registers and save them in stack slot for use with 
             // the called proc
             stmt->s_code->op = CALL;
             stmt->s_code->arg1->a_type = PROC;
             stmt->s_code->arg1->a_strval = stmt->s_info.s_call.call_id;
-            print_instruction(fp, stmt->s_code);
+
+            // TODO set curr register to 0 and increment
             gen_expressions(fp, stmt->s_info.s_call.s_exprs);
+            print_instruction(fp, stmt->s_code);
             // (required??) put stack slot values back in registers
             break;
     }
@@ -437,10 +439,10 @@ gen_statement(FILE *fp, Stmt stmt) {
 void
 gen_expressions(FILE *fp, Exprs exprs) {
     /* handles a list of expressions only used in Calls */
+    get_nextplace(exprs->e_first->e_place, REG);
     gen_expression(fp, exprs->e_first);
         
     if (exprs->e_rest != NULL) {
-        fprintf(fp, ", ");
         gen_expressions(fp, exprs->e_rest);
     }
 }

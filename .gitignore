@@ -1,6 +1,6 @@
 *.swp
 *.swo
-*.k
+tests/temp/*
 *.t
 *.o
 *.output

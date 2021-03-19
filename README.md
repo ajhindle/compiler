@@ -86,6 +86,8 @@ end
 The code can be written messily (like in test_messy.k above) but provided 
 that it's syntactically correct, the pretty printer will fix it.
 
+### Testing
+Test files are available [here](tests/)
 
 ### TODO 
 Codegen support for:
@@ -97,7 +99,6 @@ Semantic analysis:
 - type errors
 
 General:
-- supply test cases
 - code clean-up
 - more doco on the syntax and semantics of 'n07' ( see parser.y and scanner.l )
 
